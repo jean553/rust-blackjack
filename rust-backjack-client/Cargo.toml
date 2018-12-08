@@ -1,0 +1,9 @@
+[package]
+name = "rust-backjack-client"
+version = "0.1.0"
+authors = ["vagrant"]
+edition = "2018"
+
+[dependencies]
+piston_window = "*"
+ws = "*"
