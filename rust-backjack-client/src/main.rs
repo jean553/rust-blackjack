@@ -13,48 +13,56 @@ use ws::{
 };
 
 use std::io::stdin;
+use std::thread;
 
 fn main() {
 
-    connect("ws://127.0.0.1:3000", |output| {
+    println!("Player name: ");
+    let mut input: String = String::new();
+    stdin().read_line(&mut input).expect("Input error.");
 
-        println!("Player name: ");
-        let mut input: String = String::new();
-        stdin().read_line(&mut input).expect("Input error.");
+    let socket_thread = thread::spawn(move || {
 
-        let player_name = input.trim().to_string();
-        output.send(player_name);
+        const SERVER_ADDRESS: &str = "ws://127.0.0.1:3000";
 
-        const WINDOW_WIDTH: f64 = 800.0;
-        const WINDOW_HEIGHT: f64 = 600.0;
+        connect(SERVER_ADDRESS, |output| {
 
-        let mut window: PistonWindow = WindowSettings::new(
-            "rust-blackjack",
-            [
-                WINDOW_WIDTH,
-                WINDOW_HEIGHT,
-            ]
-        )
-        .exit_on_esc(true)
-        .build()
-        .unwrap();
+            let player_name = input.trim().to_string();
+            output.send(player_name);
 
-        while let Some(event) = window.next() {
-
-            window.draw_2d(
-                &event,
-                |context, window| {
-
-                    clear(
-                        [0.2, 0.5, 0.3, 1.0], /* green */
-                        window,
-                    );
-                }
-            );
-        }
-
-        move |message| {
-            output.close(CloseCode::Normal)
-        }
+            move |message| {
+                output.close(CloseCode::Normal)
+            }
+        });
     });
+
+    const WINDOW_WIDTH: f64 = 800.0;
+    const WINDOW_HEIGHT: f64 = 600.0;
+
+    let mut window: PistonWindow = WindowSettings::new(
+        "rust-blackjack",
+        [
+            WINDOW_WIDTH,
+            WINDOW_HEIGHT,
+        ]
+    )
+    .exit_on_esc(true)
+    .build()
+    .unwrap();
+
+    while let Some(event) = window.next() {
+
+        window.draw_2d(
+            &event,
+            |context, window| {
+
+                clear(
+                    [0.2, 0.5, 0.3, 1.0], /* green */
+                    window,
+                );
+            }
+        );
+    }
+
+    socket_thread.join();
 }
