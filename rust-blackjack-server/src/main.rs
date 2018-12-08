@@ -10,6 +10,8 @@ use ws::{
     Handshake,
 };
 
+use std::thread;
+
 struct Server {
     output: Sender,
 }
@@ -44,14 +46,17 @@ impl Handler for Server {
     ///
     fn on_close(&mut self, _: CloseCode, _: &str) {
         println!("Terminate socket.");
-        self.output.shutdown().unwrap();
     }
 }
 
 fn main() {
 
-    const LISTENING_ADDRESS: &str = "172.0.0.1:3000";
-    listen(LISTENING_ADDRESS, |output| {
-        Server { output }
-    }).unwrap();
+    thread::spawn(|| {
+        const LISTENING_ADDRESS: &str = "127.0.0.1:3000";
+        listen(LISTENING_ADDRESS, |output| {
+            Server { output }
+        }).unwrap();
+    });
+
+    loop {}
 }

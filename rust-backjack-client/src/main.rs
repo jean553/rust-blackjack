@@ -10,10 +10,29 @@ use piston_window::{
 use ws::{
     connect,
     CloseCode,
+    Sender,
+    Handler,
+    Message,
+    Result,
 };
 
 use std::io::stdin;
 use std::thread;
+
+struct Client {
+    output: Sender,
+}
+
+impl Handler for Client {
+
+    ///
+    ///
+    ///
+    fn on_message(&mut self, message: Message) -> Result<()> {
+        println!("Message received.");
+        self.output.send("OK")
+    }
+}
 
 fn main() {
 
