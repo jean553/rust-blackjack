@@ -9,11 +9,10 @@ use piston_window::{
 
 use ws::{
     connect,
-    CloseCode,
     Sender,
     Handler,
-    Message,
     Result,
+    Handshake,
 };
 
 use std::io::stdin;
@@ -25,11 +24,13 @@ struct Client {
 
 impl Handler for Client {
 
-    ///
-    ///
-    ///
-    fn on_message(&mut self, message: Message) -> Result<()> {
-        println!("Message received.");
+    /// Called when a successful connexion has been established with the server.
+    fn on_open(
+        &mut self,
+        _: Handshake
+    ) -> Result<()> {
+
+        println!("Connected.");
         self.output.send("OK")
     }
 }
@@ -40,18 +41,13 @@ fn main() {
     let mut input: String = String::new();
     stdin().read_line(&mut input).expect("Input error.");
 
-    let socket_thread = thread::spawn(move || {
+    /* the socket handling is performed into a dedicated thread,
+     * otherwise the program would just block here waiting for messages */
+    thread::spawn(move || {
 
         const SERVER_ADDRESS: &str = "ws://127.0.0.1:3000";
-
-        connect(SERVER_ADDRESS, |output| {
-
-            let player_name = input.trim().to_string();
-            output.send(player_name);
-
-            move |message| {
-                output.close(CloseCode::Normal)
-            }
+        let _ = connect(SERVER_ADDRESS, |output| {
+            Client { output }
         });
     });
 
@@ -73,7 +69,7 @@ fn main() {
 
         window.draw_2d(
             &event,
-            |context, window| {
+            |_context, window| {
 
                 clear(
                     [0.2, 0.5, 0.3, 1.0], /* green */
@@ -83,5 +79,7 @@ fn main() {
         );
     }
 
-    socket_thread.join();
+    /* the socket thread is terminated here as well,
+       after the window has been closed by the user,
+       we voluntarily dont wait for it to be terminated (no join) */
 }

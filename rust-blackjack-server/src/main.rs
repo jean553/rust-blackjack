@@ -4,13 +4,10 @@ use ws::{
     listen,
     Sender,
     Handler,
-    Message,
     Result,
     CloseCode,
     Handshake,
 };
-
-use std::thread;
 
 struct Server {
     output: Sender,
@@ -18,9 +15,11 @@ struct Server {
 
 impl Handler for Server {
 
+    /// Called when a new connexion is established from a client.
     ///
+    /// # Args:
     ///
-    ///
+    /// `handshake` - client-server handshake properties
     fn on_open(
         &mut self,
         handshake: Handshake
@@ -30,20 +29,11 @@ impl Handler for Server {
             "New connexion from {}.",
             handshake.remote_addr().unwrap().unwrap()
         );
+
         self.output.send("OK")
     }
 
-    ///
-    ///
-    ///
-    fn on_message(&mut self, message: Message) -> Result<()> {
-        println!("Received message: {}", message);
-        self.output.send("OK")
-    }
-
-    ///
-    ///
-    ///
+    /// Called when a connexion is terminated from the client side.
     fn on_close(&mut self, _: CloseCode, _: &str) {
         println!("Terminate socket.");
     }
@@ -51,12 +41,8 @@ impl Handler for Server {
 
 fn main() {
 
-    thread::spawn(|| {
-        const LISTENING_ADDRESS: &str = "127.0.0.1:3000";
-        listen(LISTENING_ADDRESS, |output| {
-            Server { output }
-        }).unwrap();
-    });
-
-    loop {}
+    const LISTENING_ADDRESS: &str = "127.0.0.1:3000";
+    listen(LISTENING_ADDRESS, |output| {
+        Server { output }
+    }).unwrap();
 }
