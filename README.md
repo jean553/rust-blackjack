@@ -33,3 +33,7 @@ cargo build --release
 
  * `rust-blackjack-client` - graphical client with Piston library,
  * `rust-blackjack-server` - server
+
+## Credits
+
+Playing cards images from https://code.google.com/archive/p/vector-playing-cards/ (public domain).

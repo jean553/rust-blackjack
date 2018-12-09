@@ -30,7 +30,12 @@ impl Handler for Server {
             handshake.remote_addr().unwrap().unwrap()
         );
 
-        self.output.send("OK")
+        /* FIXME: for now, we simply always send
+           the same card to a new connected client;
+           we should send random cards from a queue */
+        const GIVE_CARD: u8 = 0;
+        const CLOVER_TWO: u8 = 0;
+        self.output.send(vec![GIVE_CARD, CLOVER_TWO])
     }
 
     /// Called when a connexion is terminated from the client side.
