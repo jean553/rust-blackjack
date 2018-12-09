@@ -1,4 +1,5 @@
 extern crate ws;
+extern crate rand;
 
 use ws::{
     listen,
@@ -8,6 +9,8 @@ use ws::{
     CloseCode,
     Handshake,
 };
+
+use rand::{thread_rng, Rng};
 
 struct Server {
     output: Sender,
@@ -30,12 +33,23 @@ impl Handler for Server {
             handshake.remote_addr().unwrap().unwrap()
         );
 
-        /* FIXME: for now, we simply always send
-           the same card to a new connected client;
-           we should send random cards from a queue */
         const GIVE_CARD: u8 = 0;
-        const CLOVER_TWO: u8 = 0;
-        self.output.send(vec![GIVE_CARD, CLOVER_TWO])
+
+        /* FIXME: for now, we simply select a random card for a client;
+           we should take our cards from a queue */
+        const MIN_CARD_ID: u8 = 0;
+        const MAX_CARD_ID: u8 = 51;
+        let random_card: u8 = thread_rng().gen_range(
+            MIN_CARD_ID,
+            MAX_CARD_ID + 1
+        );
+
+        self.output.send(
+            vec![
+                GIVE_CARD,
+                random_card,
+            ]
+        )
     }
 
     /// Called when a connexion is terminated from the client side.
