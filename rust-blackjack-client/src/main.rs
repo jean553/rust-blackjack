@@ -68,6 +68,42 @@ impl Handler for Client {
     }
 }
 
+/// Loads one card texture. Refactored as called multiple times.
+///
+/// # Args:
+///
+/// `window` - piston window reference for textures loading
+/// `file_name` - name of the texture file to load (without prefix/suffix)
+fn load_one_card_texture(
+    window: &mut PistonWindow,
+    file_name: &str
+) -> G2dTexture {
+
+    let mut file_path: String = "res/".to_string();
+    file_path.push_str(file_name);
+    file_path.push_str(".png");
+
+    Texture::from_path(
+        &mut window.factory,
+        &file_path,
+        Flip::None,
+        &TextureSettings::new(),
+    ).unwrap()
+}
+
+/// Loads all cards textures into an array. Refactored for readability.
+///
+/// # Args:
+///
+/// `window` - piston window reference for textures loading
+fn load_all_cards_textures(window: &mut PistonWindow) -> Vec<G2dTexture> {
+
+    vec![
+        load_one_card_texture(window, "2_of_clubs"),
+        load_one_card_texture(window, "3_of_clubs"),
+    ]
+}
+
 fn main() {
 
     /* FIXME: for now, a player only has one unique card
@@ -96,8 +132,8 @@ fn main() {
         });
     });
 
-    const WINDOW_WIDTH: f64 = 1024.0;
-    const WINDOW_HEIGHT: f64 = 1024.0;
+    const WINDOW_WIDTH: f64 = 800.0;
+    const WINDOW_HEIGHT: f64 = 600.0;
 
     let mut window: PistonWindow = WindowSettings::new(
         "rust-blackjack",
@@ -111,12 +147,7 @@ fn main() {
     .build()
     .unwrap();
 
-    let two_of_clubs: G2dTexture = Texture::from_path(
-        &mut window.factory,
-        "res/2_of_clubs.png",
-        Flip::None,
-        &TextureSettings::new(),
-    ).unwrap();
+    let cards = load_all_cards_textures(&mut window);
 
     while let Some(event) = window.next() {
 
@@ -132,7 +163,7 @@ fn main() {
                 let displayed_card = card_mutex_arc.lock().unwrap();
                 if displayed_card.is_some() {
                     image(
-                        &two_of_clubs,
+                        &cards[displayed_card.unwrap() as usize],
                         context.transform,
                         window,
                     );
