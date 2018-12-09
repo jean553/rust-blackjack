@@ -161,6 +161,7 @@ dependencies = [
 name = "rust-blackjack-server"
 version = "0.1.0"
 dependencies = [
+ "rand 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "ws 0.7.9 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
