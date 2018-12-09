@@ -10,6 +10,7 @@ use piston_window::{
     Flip,
     TextureSettings,
     G2dTexture,
+    Transformed,
 };
 
 use ws::{
@@ -162,9 +163,20 @@ fn main() {
 
                 let displayed_card = card_mutex_arc.lock().unwrap();
                 if displayed_card.is_some() {
+
+                    const CARD_HORIZONTAL_POSITION: f64 = 300.0;
+                    const CARD_VERTICAL_POSITION: f64 = 400.0;
+                    const CARD_DIMENSIONS_SCALE: f64 = 0.5;
+
                     image(
                         &cards[displayed_card.unwrap() as usize],
-                        context.transform,
+                        context.transform.trans(
+                            CARD_HORIZONTAL_POSITION,
+                            CARD_VERTICAL_POSITION,
+                        ).scale(
+                            CARD_DIMENSIONS_SCALE,
+                            CARD_DIMENSIONS_SCALE
+                        ),
                         window,
                     );
                 }
