@@ -41,7 +41,8 @@ impl Handler for Client {
     ) -> Result<()> {
 
         println!("Connected.");
-        self.output.send("OK")
+
+        Ok(())
     }
 
     /// Called when a message is received from the server.
@@ -63,7 +64,7 @@ impl Handler for Client {
             *displayed_card = Some(*card);
         }
 
-        self.output.send("OK")
+        Ok(())
     }
 }
 
