@@ -7,3 +7,6 @@ edition = "2018"
 [dependencies]
 ws = "*"
 rand = "*"
+serde = "*"
+serde_json = "*"
+serde_derive = "*"
