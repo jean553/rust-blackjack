@@ -1,5 +1,8 @@
 extern crate ws;
 extern crate rand;
+extern crate serde;
+extern crate serde_json;
+#[macro_use] extern crate serde_derive;
 
 use ws::{
     listen,
@@ -12,8 +15,19 @@ use ws::{
 
 use rand::{thread_rng, Rng};
 
+#[derive(Serialize)]
+enum CardAction {
+    SendCard,
+}
+
 struct Server {
     output: Sender,
+}
+
+#[derive(Serialize)]
+struct CardMessage {
+    action: CardAction,
+    card_index: u8,
 }
 
 impl Handler for Server {
@@ -33,8 +47,6 @@ impl Handler for Server {
             handshake.remote_addr().unwrap().unwrap()
         );
 
-        const GIVE_CARD: u8 = 0;
-
         /* FIXME: for now, we simply select a random card for a client;
            we should take our cards from a queue */
         const MIN_CARD_ID: u8 = 0;
@@ -44,12 +56,14 @@ impl Handler for Server {
             MAX_CARD_ID + 1
         );
 
-        self.output.send(
-            vec![
-                GIVE_CARD,
-                random_card,
-            ]
-        )
+        let card_message = CardMessage {
+            action: CardAction::SendCard,
+            card_index: random_card,
+        };
+
+        let message = serde_json::to_string(&card_message).unwrap();
+
+        self.output.send(message)
     }
 
     /// Called when a connexion is terminated from the client side.

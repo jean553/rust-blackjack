@@ -1,5 +1,8 @@
 extern crate piston_window;
 extern crate ws;
+extern crate serde;
+extern crate serde_json;
+#[macro_use] extern crate serde_derive;
 
 mod cards;
 
@@ -13,7 +16,6 @@ use piston_window::{
 
 use ws::{
     connect,
-    Sender,
     Handler,
     Result,
     Handshake,
@@ -27,8 +29,22 @@ use std::sync::{
     Arc,
 };
 
+#[derive(Deserialize, PartialEq)]
+enum CardAction {
+    SendCard,
+}
+
+#[derive(Deserialize)]
+struct CardMessage {
+    action: CardAction,
+    card_index: u8,
+}
+
 struct Client {
-    output: Sender,
+
+    /* FIXME: add the Sender field,
+       required to communicate with the server */
+
     card_mutex_arc: Arc<Mutex<Option<u8>>>,
 }
 
@@ -41,7 +57,8 @@ impl Handler for Client {
     ) -> Result<()> {
 
         println!("Connected.");
-        self.output.send("OK")
+
+        Ok(())
     }
 
     /// Called when a message is received from the server.
@@ -50,20 +67,20 @@ impl Handler for Client {
         message: Message,
     ) -> Result<()> {
 
-        let data = message.into_data();
-        let action = data.get(0).unwrap();
+        let data: CardMessage = serde_json::from_str(
+            &message.into_text()
+                .unwrap()
+        ).unwrap();
 
-        const RECEIVE_CARD: u8 = 0;
+        if data.action == CardAction::SendCard {
 
-        if *action == RECEIVE_CARD {
+            let mut displayed_card = self.card_mutex_arc.lock()
+                .unwrap();
 
-            let card = data.get(1).unwrap();
-
-            let mut displayed_card = self.card_mutex_arc.lock().unwrap();
-            *displayed_card = Some(*card);
+            *displayed_card = Some(data.card_index);
         }
 
-        self.output.send("OK")
+        Ok(())
     }
 }
 
@@ -87,9 +104,8 @@ fn main() {
     thread::spawn(move || {
 
         const SERVER_ADDRESS: &str = "ws://127.0.0.1:3000";
-        let _ = connect(SERVER_ADDRESS, |output| {
+        let _ = connect(SERVER_ADDRESS, |_| {
             Client {
-                output: output,
                 card_mutex_arc: card_mutex_arc_clone.clone(),
             }
         });

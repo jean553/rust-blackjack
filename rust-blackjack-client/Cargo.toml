@@ -7,3 +7,6 @@ edition = "2018"
 [dependencies]
 piston_window = "*"
 ws = "*"
+serde = "*"
+serde_json = "*"
+serde_derive = "*"
