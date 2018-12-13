@@ -86,12 +86,7 @@ impl Handler for Client {
 
 fn main() {
 
-    /* FIXME: for now, a player only has one unique card
-       (in order to develop the feature step by step);
-       the player should have a full deck */
-    let displayed_card: Option<u8> = None;
-
-    let card_mutex = Mutex::new(displayed_card);
+    let card_mutex = Mutex::new(None);
     let card_mutex_arc = Arc::new(card_mutex);
     let card_mutex_arc_clone = card_mutex_arc.clone();
 
