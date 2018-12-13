@@ -45,7 +45,7 @@ struct Client {
     /* FIXME: add the Sender field,
        required to communicate with the server */
 
-    card_mutex_arc: Arc<Mutex<Option<u8>>>,
+    card_mutex_arc: Arc<Mutex<Vec<u8>>>,
 }
 
 impl Handler for Client {
@@ -77,7 +77,7 @@ impl Handler for Client {
             let mut displayed_card = self.card_mutex_arc.lock()
                 .unwrap();
 
-            *displayed_card = Some(data.card_index);
+            displayed_card.push(data.card_index);
         }
 
         Ok(())
@@ -86,8 +86,7 @@ impl Handler for Client {
 
 fn main() {
 
-    let card_mutex = Mutex::new(None);
-    let card_mutex_arc = Arc::new(card_mutex);
+    let card_mutex_arc = Arc::new(Mutex::new(vec![]));
     let card_mutex_arc_clone = card_mutex_arc.clone();
 
     println!("Player name: ");
@@ -135,14 +134,14 @@ fn main() {
                 );
 
                 let displayed_card = card_mutex_arc.lock().unwrap();
-                if displayed_card.is_some() {
+                if !displayed_card.is_empty() {
 
                     const CARD_HORIZONTAL_POSITION: f64 = 300.0;
                     const CARD_VERTICAL_POSITION: f64 = 400.0;
                     const CARD_DIMENSIONS_SCALE: f64 = 0.5;
 
                     image(
-                        &cards[displayed_card.unwrap() as usize],
+                        &cards[*displayed_card.get(0).unwrap() as usize],
                         context.transform.trans(
                             CARD_HORIZONTAL_POSITION,
                             CARD_VERTICAL_POSITION,
