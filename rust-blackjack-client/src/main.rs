@@ -140,17 +140,27 @@ fn main() {
                     const CARD_VERTICAL_POSITION: f64 = 400.0;
                     const CARD_DIMENSIONS_SCALE: f64 = 0.5;
 
-                    image(
-                        &cards[*displayed_card.get(0).unwrap() as usize],
-                        context.transform.trans(
-                            CARD_HORIZONTAL_POSITION,
-                            CARD_VERTICAL_POSITION,
-                        ).scale(
-                            CARD_DIMENSIONS_SCALE,
-                            CARD_DIMENSIONS_SCALE
-                        ),
-                        window,
-                    );
+                    let mut card_horizontal_position: f64 = CARD_HORIZONTAL_POSITION;
+                    let mut card_vertical_position: f64 = CARD_VERTICAL_POSITION;
+
+                    for card_index in 0..displayed_card.len() {
+
+                        image(
+                            &cards[*displayed_card.get(card_index).unwrap() as usize],
+                            context.transform.trans(
+                                card_horizontal_position,
+                                card_vertical_position,
+                            ).scale(
+                                CARD_DIMENSIONS_SCALE,
+                                CARD_DIMENSIONS_SCALE
+                            ),
+                            window,
+                        );
+
+                        const CARDS_DISTANCE: f64 = 40.0;
+                        card_horizontal_position += CARDS_DISTANCE;
+                        card_vertical_position += CARDS_DISTANCE;
+                    }
                 }
             }
         );
