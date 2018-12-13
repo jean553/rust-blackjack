@@ -30,6 +30,19 @@ struct CardMessage {
     card_index: u8,
 }
 
+/// Draws a card for a player.
+fn draw_card() -> u8 {
+
+    /* FIXME: for now, we simply select a random card for a client;
+       we should take our cards from a queue */
+    const MIN_CARD_ID: u8 = 0;
+    const MAX_CARD_ID: u8 = 51;
+    thread_rng().gen_range(
+        MIN_CARD_ID,
+        MAX_CARD_ID + 1
+    )
+}
+
 impl Handler for Server {
 
     /// Called when a new connexion is established from a client.
@@ -47,18 +60,9 @@ impl Handler for Server {
             handshake.remote_addr().unwrap().unwrap()
         );
 
-        /* FIXME: for now, we simply select a random card for a client;
-           we should take our cards from a queue */
-        const MIN_CARD_ID: u8 = 0;
-        const MAX_CARD_ID: u8 = 51;
-        let random_card: u8 = thread_rng().gen_range(
-            MIN_CARD_ID,
-            MAX_CARD_ID + 1
-        );
-
         let card_message = CardMessage {
             action: CardAction::SendCard,
-            card_index: random_card,
+            card_index: draw_card(),
         };
 
         let message = serde_json::to_string(&card_message).unwrap();
