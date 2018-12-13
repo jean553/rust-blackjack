@@ -45,7 +45,7 @@ struct Client {
     /* FIXME: add the Sender field,
        required to communicate with the server */
 
-    card_mutex_arc: Arc<Mutex<Option<u8>>>,
+    card_mutex_arc: Arc<Mutex<Vec<u8>>>,
 }
 
 impl Handler for Client {
@@ -77,7 +77,7 @@ impl Handler for Client {
             let mut displayed_card = self.card_mutex_arc.lock()
                 .unwrap();
 
-            *displayed_card = Some(data.card_index);
+            displayed_card.push(data.card_index);
         }
 
         Ok(())
@@ -86,13 +86,7 @@ impl Handler for Client {
 
 fn main() {
 
-    /* FIXME: for now, a player only has one unique card
-       (in order to develop the feature step by step);
-       the player should have a full deck */
-    let displayed_card: Option<u8> = None;
-
-    let card_mutex = Mutex::new(displayed_card);
-    let card_mutex_arc = Arc::new(card_mutex);
+    let card_mutex_arc = Arc::new(Mutex::new(vec![]));
     let card_mutex_arc_clone = card_mutex_arc.clone();
 
     println!("Player name: ");
@@ -140,23 +134,33 @@ fn main() {
                 );
 
                 let displayed_card = card_mutex_arc.lock().unwrap();
-                if displayed_card.is_some() {
+                if !displayed_card.is_empty() {
 
                     const CARD_HORIZONTAL_POSITION: f64 = 300.0;
                     const CARD_VERTICAL_POSITION: f64 = 400.0;
                     const CARD_DIMENSIONS_SCALE: f64 = 0.5;
 
-                    image(
-                        &cards[displayed_card.unwrap() as usize],
-                        context.transform.trans(
-                            CARD_HORIZONTAL_POSITION,
-                            CARD_VERTICAL_POSITION,
-                        ).scale(
-                            CARD_DIMENSIONS_SCALE,
-                            CARD_DIMENSIONS_SCALE
-                        ),
-                        window,
-                    );
+                    let mut card_horizontal_position: f64 = CARD_HORIZONTAL_POSITION;
+                    let mut card_vertical_position: f64 = CARD_VERTICAL_POSITION;
+
+                    for card_index in 0..displayed_card.len() {
+
+                        image(
+                            &cards[*displayed_card.get(card_index).unwrap() as usize],
+                            context.transform.trans(
+                                card_horizontal_position,
+                                card_vertical_position,
+                            ).scale(
+                                CARD_DIMENSIONS_SCALE,
+                                CARD_DIMENSIONS_SCALE
+                            ),
+                            window,
+                        );
+
+                        const CARDS_DISTANCE: f64 = 40.0;
+                        card_horizontal_position += CARDS_DISTANCE;
+                        card_vertical_position += CARDS_DISTANCE;
+                    }
                 }
             }
         );
