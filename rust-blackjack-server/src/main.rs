@@ -67,6 +67,15 @@ impl Handler for Server {
 
         let message = serde_json::to_string(&card_message).unwrap();
 
+        self.output.send(message).unwrap();
+
+        let card_message = CardMessage {
+            action: CardAction::SendCard,
+            card_index: draw_card(),
+        };
+
+        let message = serde_json::to_string(&card_message).unwrap();
+
         self.output.send(message)
     }
 
