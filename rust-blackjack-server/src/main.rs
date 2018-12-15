@@ -43,9 +43,25 @@ fn draw_card() -> u8 {
     )
 }
 
+impl Server {
+
+    /// Sends one card through the websocket.
+    fn send_card(&self) -> Result<()> {
+
+        let card_message = CardMessage {
+            action: CardAction::SendCard,
+            card_index: draw_card(),
+        };
+
+        let message = serde_json::to_string(&card_message).unwrap();
+
+        self.output.send(message)
+    }
+}
+
 impl Handler for Server {
 
-    /// Called when a new connexion is established from a client.
+    /// Called when a new connexion is established from a client. Sends two cards to the new connected client.
     ///
     /// # Args:
     ///
@@ -60,23 +76,8 @@ impl Handler for Server {
             handshake.remote_addr().unwrap().unwrap()
         );
 
-        let card_message = CardMessage {
-            action: CardAction::SendCard,
-            card_index: draw_card(),
-        };
-
-        let message = serde_json::to_string(&card_message).unwrap();
-
-        self.output.send(message).unwrap();
-
-        let card_message = CardMessage {
-            action: CardAction::SendCard,
-            card_index: draw_card(),
-        };
-
-        let message = serde_json::to_string(&card_message).unwrap();
-
-        self.output.send(message)
+        self.send_card().unwrap();
+        self.send_card()
     }
 
     /// Called when a connexion is terminated from the client side.
