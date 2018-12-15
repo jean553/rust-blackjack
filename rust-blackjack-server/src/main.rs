@@ -30,32 +30,27 @@ struct CardMessage {
     card_index: u8,
 }
 
-/// Draws a card for a player.
-fn draw_card() -> u8 {
-
-    /* FIXME: for now, we simply select a random card for a client;
-       we should take our cards from a queue */
-    const MIN_CARD_ID: u8 = 0;
-    const MAX_CARD_ID: u8 = 51;
-    thread_rng().gen_range(
-        MIN_CARD_ID,
-        MAX_CARD_ID + 1
-    )
-}
-
 impl Server {
 
-    /// Sends one card through the websocket.
-    fn send_card(&self) -> Result<()> {
+    /// Sends one random card to the client through the socket.
+    ///
+    /// FIXME: we randomly select a card for now, should be popped from a queue
+    fn send_card(&self) {
+
+        const MIN_CARD_ID: u8 = 0;
+        const MAX_CARD_ID: u8 = 51;
 
         let card_message = CardMessage {
             action: CardAction::SendCard,
-            card_index: draw_card(),
+            card_index: thread_rng().gen_range(
+                MIN_CARD_ID,
+                MAX_CARD_ID + 1
+            )
         };
 
         let message = serde_json::to_string(&card_message).unwrap();
 
-        self.output.send(message)
+        self.output.send(message).unwrap();
     }
 }
 
@@ -76,8 +71,10 @@ impl Handler for Server {
             handshake.remote_addr().unwrap().unwrap()
         );
 
-        self.send_card().unwrap();
-        self.send_card()
+        self.send_card();
+        self.send_card();
+
+        Ok(())
     }
 
     /// Called when a connexion is terminated from the client side.
