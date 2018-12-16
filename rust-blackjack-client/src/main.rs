@@ -59,7 +59,7 @@ struct CardMessage {
 }
 
 struct Client {
-    card_mutex_arc: Arc<Mutex<Vec<u8>>>,
+    cards_mutex_arc: Arc<Mutex<Vec<u8>>>,
     socket_sender: Sender,
     channel_sender: mpsc::Sender<Event>,
 }
@@ -99,7 +99,7 @@ impl Handler for Client {
 
         if data.action == CardAction::SendCard {
 
-            let mut displayed_cards = self.card_mutex_arc.lock()
+            let mut displayed_cards = self.cards_mutex_arc.lock()
                 .unwrap();
 
             displayed_cards.push(data.card_index);
@@ -117,8 +117,8 @@ impl Handler for Client {
 
 fn main() {
 
-    let card_mutex_arc = Arc::new(Mutex::new(vec![]));
-    let card_mutex_arc_clone = card_mutex_arc.clone();
+    let cards_mutex_arc = Arc::new(Mutex::new(vec![]));
+    let cards_mutex_arc_clone = cards_mutex_arc.clone();
 
     println!("Player name: ");
     let mut input: String = String::new();
@@ -136,7 +136,7 @@ fn main() {
         const SERVER_ADDRESS: &str = "ws://127.0.0.1:3000";
         let _ = connect(SERVER_ADDRESS, |sender| {
             Client {
-                card_mutex_arc: card_mutex_arc_clone.clone(),
+                cards_mutex_arc: cards_mutex_arc_clone.clone(),
                 socket_sender: sender,
                 channel_sender: channel_sender.clone(),
             }
@@ -224,7 +224,7 @@ fn main() {
                     window,
                 ).unwrap();
 
-                let displayed_cards = card_mutex_arc.lock().unwrap();
+                let displayed_cards = cards_mutex_arc.lock().unwrap();
                 if displayed_cards.is_empty() {
                     return;
                 }
