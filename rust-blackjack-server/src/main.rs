@@ -11,20 +11,22 @@ use ws::{
     Result,
     CloseCode,
     Handshake,
+    Message,
 };
 
 use rand::{thread_rng, Rng};
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize, PartialEq)]
 enum CardAction {
     SendCard,
+    Hit,
 }
 
 struct Server {
     output: Sender,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 struct CardMessage {
     action: CardAction,
     card_index: u8,
@@ -73,6 +75,29 @@ impl Handler for Server {
 
         self.send_card();
         self.send_card();
+
+        Ok(())
+    }
+
+    /// Called when a message is received from the client.
+    ///
+    /// # Args:
+    ///
+    /// `message` - the received message
+    fn on_message(
+        &mut self,
+        message: Message,
+    ) -> Result<()> {
+
+        let data: CardMessage = serde_json::from_str(
+            &message.into_text()
+                .unwrap()
+        ).unwrap();
+
+        if data.action == CardAction::Hit {
+
+            self.send_card();
+        }
 
         Ok(())
     }
