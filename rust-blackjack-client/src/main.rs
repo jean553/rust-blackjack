@@ -11,12 +11,15 @@ mod cards;
 use piston_window::{
     clear,
     image,
+    text,
     PistonWindow,
     WindowSettings,
     Transformed,
     PressEvent,
     Button,
     Key,
+    Glyphs,
+    TextureSettings,
 };
 
 use ws::{
@@ -168,6 +171,14 @@ fn main() {
 
     let cards_images = cards::load_all_cards_textures(&mut window);
 
+    const TITLE_FONT_PATH: &str = "res/title_font.ttf";
+
+    let mut title_glyphs = Glyphs::new(
+        TITLE_FONT_PATH,
+        window.factory.clone(),
+        TextureSettings::new()
+    ).unwrap();
+
     while let Some(event) = window.next() {
 
         if Ok(Event::Disconnect) == channel_receiver.try_recv() {
@@ -194,6 +205,24 @@ fn main() {
                     [0.2, 0.5, 0.3, 1.0], /* green */
                     window,
                 );
+
+                const TITLE_FONT_SIZE: u32 = 64;
+                const TITLE_HORIZONTAL_POSITION: f64 = 275.0;
+                const TITLE_VERTICAL_POSITION: f64 = 80.0;
+
+                text::Text::new_color(
+                    [1.0, 1.0, 1.0, 1.0], /* white */
+                    TITLE_FONT_SIZE
+                ).draw(
+                    "Blackjack",
+                    &mut title_glyphs,
+                    &context.draw_state,
+                    context.transform.trans(
+                        TITLE_HORIZONTAL_POSITION,
+                        TITLE_VERTICAL_POSITION,
+                    ),
+                    window,
+                ).unwrap();
 
                 let displayed_cards = card_mutex_arc.lock().unwrap();
                 if displayed_cards.is_empty() {
