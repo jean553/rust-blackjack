@@ -1,3 +1,5 @@
+#![deny(warnings)]
+
 extern crate piston_window;
 extern crate ws;
 extern crate serde;
@@ -126,7 +128,7 @@ fn main() {
     /* TODO: the window should be displayed only if the Connect event
        is received from the channel receiver, meaning the socket
        is correctly initialized, otherwise, the program should stop */
-    if let Ok(Event::Connect(sender)) = channel_receiver.recv() {
+    if let Ok(Event::Connect(_sender)) = channel_receiver.recv() {
     }
 
     const WINDOW_WIDTH: f64 = 800.0;
