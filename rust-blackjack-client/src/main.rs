@@ -20,6 +20,7 @@ use ws::{
     Result,
     Handshake,
     Message,
+    Sender,
 };
 
 use std::io::stdin;
@@ -28,6 +29,12 @@ use std::sync::{
     Mutex,
     Arc,
 };
+use std::sync::mpsc;
+
+/// TODO: add the Disconnect event to correctly close the ws thread and the rendering loop together
+enum Event {
+    Connect(Sender),
+}
 
 #[derive(Deserialize, PartialEq)]
 enum CardAction {
@@ -46,6 +53,8 @@ struct Client {
        required to communicate with the server */
 
     card_mutex_arc: Arc<Mutex<Vec<u8>>>,
+    sender: Sender,
+    thread_sender: mpsc::Sender<Event>,
 }
 
 impl Handler for Client {
@@ -57,6 +66,8 @@ impl Handler for Client {
     ) -> Result<()> {
 
         println!("Connected.");
+
+        self.thread_sender.send(Event::Connect(self.sender.clone())).unwrap();
 
         Ok(())
     }
@@ -93,17 +104,30 @@ fn main() {
     let mut input: String = String::new();
     stdin().read_line(&mut input).expect("Input error.");
 
+    let (
+        channel_sender,
+        channel_receiver,
+    ) = mpsc::channel::<Event>();
+
     /* the socket handling is performed into a dedicated thread,
      * otherwise the program would just block here waiting for messages */
     thread::spawn(move || {
 
         const SERVER_ADDRESS: &str = "ws://127.0.0.1:3000";
-        let _ = connect(SERVER_ADDRESS, |_| {
+        let _ = connect(SERVER_ADDRESS, |sender| {
             Client {
                 card_mutex_arc: card_mutex_arc_clone.clone(),
+                sender: sender,
+                thread_sender: channel_sender.clone(),
             }
         });
     });
+
+    /* TODO: the window should be displayed only if the Connect event
+       is received from the channel receiver, meaning the socket
+       is correctly initialized, otherwise, the program should stop */
+    if let Ok(Event::Connect(sender)) = channel_receiver.recv() {
+    }
 
     const WINDOW_WIDTH: f64 = 800.0;
     const WINDOW_HEIGHT: f64 = 600.0;
