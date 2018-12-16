@@ -54,18 +54,15 @@ struct CardMessage {
 }
 
 struct Client {
-
-    /* FIXME: add the Sender field,
-       required to communicate with the server */
-
     card_mutex_arc: Arc<Mutex<Vec<u8>>>,
-    sender: Sender,
-    thread_sender: mpsc::Sender<Event>,
+    socket_sender: Sender,
+    channel_sender: mpsc::Sender<Event>,
 }
 
 impl Handler for Client {
 
-    /// Called when a successful connexion has been established with the server.
+    /// Called when a successful connexion has been established with the server,
+    /// sends a successful connection event to the main thread through the channel.
     fn on_open(
         &mut self,
         _: Handshake
@@ -73,7 +70,9 @@ impl Handler for Client {
 
         println!("Connected.");
 
-        self.thread_sender.send(Event::Connect(self.sender.clone())).unwrap();
+        self.channel_sender.send(
+            Event::Connect(self.socket_sender.clone())
+        ).unwrap();
 
         Ok(())
     }
@@ -95,10 +94,10 @@ impl Handler for Client {
 
         if data.action == CardAction::SendCard {
 
-            let mut displayed_card = self.card_mutex_arc.lock()
+            let mut displayed_cards = self.card_mutex_arc.lock()
                 .unwrap();
 
-            displayed_card.push(data.card_index);
+            displayed_cards.push(data.card_index);
         }
 
         Ok(())
@@ -127,8 +126,8 @@ fn main() {
         let _ = connect(SERVER_ADDRESS, |sender| {
             Client {
                 card_mutex_arc: card_mutex_arc_clone.clone(),
-                sender: sender,
-                thread_sender: channel_sender.clone(),
+                socket_sender: sender,
+                channel_sender: channel_sender.clone(),
             }
         });
     });
@@ -150,7 +149,7 @@ fn main() {
         .build()
         .unwrap();
 
-        let cards = cards::load_all_cards_textures(&mut window);
+        let cards_images = cards::load_all_cards_textures(&mut window);
 
         while let Some(event) = window.next() {
 
@@ -175,8 +174,8 @@ fn main() {
                         window,
                     );
 
-                    let displayed_card = card_mutex_arc.lock().unwrap();
-                    if !displayed_card.is_empty() {
+                    let displayed_cards = card_mutex_arc.lock().unwrap();
+                    if !displayed_cards.is_empty() {
 
                         const CARD_HORIZONTAL_POSITION: f64 = 300.0;
                         const CARD_VERTICAL_POSITION: f64 = 400.0;
@@ -185,10 +184,13 @@ fn main() {
                         let mut card_horizontal_position: f64 = CARD_HORIZONTAL_POSITION;
                         let mut card_vertical_position: f64 = CARD_VERTICAL_POSITION;
 
-                        for card_index in 0..displayed_card.len() {
+                        for card_index in 0..displayed_cards.len() {
 
                             image(
-                                &cards[*displayed_card.get(card_index).unwrap() as usize],
+                                &cards_images[
+                                    *displayed_cards.get(card_index)
+                                        .unwrap() as usize
+                                ],
                                 context.transform.trans(
                                     card_horizontal_position,
                                     card_vertical_position,
