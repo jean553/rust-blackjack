@@ -59,7 +59,8 @@ struct CardMessage {
 }
 
 struct Client {
-    card_mutex_arc: Arc<Mutex<Vec<u8>>>,
+    cards_mutex_arc: Arc<Mutex<Vec<u8>>>,
+    hand_points_arc: Arc<Mutex<u8>>,
     socket_sender: Sender,
     channel_sender: mpsc::Sender<Event>,
 }
@@ -99,10 +100,27 @@ impl Handler for Client {
 
         if data.action == CardAction::SendCard {
 
-            let mut displayed_cards = self.card_mutex_arc.lock()
+            let mut displayed_cards = self.cards_mutex_arc.lock()
                 .unwrap();
 
             displayed_cards.push(data.card_index);
+
+            let mut hand_points = self.hand_points_arc.lock().
+                unwrap();
+
+            const TEN_POINTS_CARDS_START_INDEX: u8 = 32;
+            if data.card_index >= TEN_POINTS_CARDS_START_INDEX {
+
+                const TEN_VALUE_CARDS_POINTS_AMOUNT: u8 = 10;
+                *hand_points += TEN_VALUE_CARDS_POINTS_AMOUNT;
+
+                return Ok(());
+            }
+
+            const CARDS_WITH_SAME_VALUE_BY_COLOR: u8 = 4;
+            const MINIMUM_CARD_VALUE: u8 = 2;
+            *hand_points += data.card_index / CARDS_WITH_SAME_VALUE_BY_COLOR
+                + MINIMUM_CARD_VALUE;
         }
 
         Ok(())
@@ -117,8 +135,8 @@ impl Handler for Client {
 
 fn main() {
 
-    let card_mutex_arc = Arc::new(Mutex::new(vec![]));
-    let card_mutex_arc_clone = card_mutex_arc.clone();
+    let cards_mutex_arc = Arc::new(Mutex::new(vec![]));
+    let hand_points_arc: Arc<Mutex<u8>> = Arc::new(Mutex::new(0));
 
     println!("Player name: ");
     let mut input: String = String::new();
@@ -129,6 +147,13 @@ fn main() {
         channel_receiver,
     ) = mpsc::channel::<Event>();
 
+    /* the asynchronous reference counters on mutexes
+       have to be copied once here as they are moved
+       when passed to the client thread below and
+       still used by the main thread */
+    let cards_mutex_arc_clone = cards_mutex_arc.clone();
+    let hand_points_arc_clone = hand_points_arc.clone();
+
     /* the socket handling is performed into a dedicated thread,
      * otherwise the program would just block here waiting for messages */
     thread::spawn(move || {
@@ -136,7 +161,8 @@ fn main() {
         const SERVER_ADDRESS: &str = "ws://127.0.0.1:3000";
         let _ = connect(SERVER_ADDRESS, |sender| {
             Client {
-                card_mutex_arc: card_mutex_arc_clone.clone(),
+                cards_mutex_arc: cards_mutex_arc_clone.clone(),
+                hand_points_arc: hand_points_arc_clone.clone(),
                 socket_sender: sender,
                 channel_sender: channel_sender.clone(),
             }
@@ -206,13 +232,14 @@ fn main() {
                     window,
                 );
 
-                const TITLE_FONT_SIZE: u32 = 64;
+                const FONT_SIZE: u32 = 64;
+
                 const TITLE_HORIZONTAL_POSITION: f64 = 275.0;
                 const TITLE_VERTICAL_POSITION: f64 = 80.0;
 
                 text::Text::new_color(
                     [1.0, 1.0, 1.0, 1.0], /* white */
-                    TITLE_FONT_SIZE
+                    FONT_SIZE
                 ).draw(
                     "Blackjack",
                     &mut title_glyphs,
@@ -224,7 +251,26 @@ fn main() {
                     window,
                 ).unwrap();
 
-                let displayed_cards = card_mutex_arc.lock().unwrap();
+                const POINTS_HORIZONTAL_POSITION: f64 = 400.0;
+                const POINTS_VERTICAL_POSITION: f64 = 400.0;
+
+                let hand_points = hand_points_arc.lock().unwrap();
+
+                text::Text::new_color(
+                    [1.0, 1.0, 1.0, 1.0], /* white */
+                    FONT_SIZE
+                ).draw(
+                    &*hand_points.to_string(),
+                    &mut title_glyphs,
+                    &context.draw_state,
+                    context.transform.trans(
+                        POINTS_HORIZONTAL_POSITION,
+                        POINTS_VERTICAL_POSITION,
+                    ),
+                    window,
+                ).unwrap();
+
+                let displayed_cards = cards_mutex_arc.lock().unwrap();
                 if displayed_cards.is_empty() {
                     return;
                 }
