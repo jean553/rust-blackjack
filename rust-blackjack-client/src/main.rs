@@ -26,6 +26,7 @@ use ws::{
     Handshake,
     Message,
     Sender,
+    CloseCode,
 };
 
 use std::io::stdin;
@@ -36,9 +37,10 @@ use std::sync::{
 };
 use std::sync::mpsc;
 
-/// TODO: add the Disconnect event to correctly close the ws thread and the rendering loop together
+#[derive(PartialEq)]
 enum Event {
     Connect(Sender),
+    Disconnect,
 }
 
 #[derive(Serialize, Deserialize, PartialEq)]
@@ -102,6 +104,12 @@ impl Handler for Client {
 
         Ok(())
     }
+
+    /// Called when the server closes the connection. Sends a message to the main thread in order to stop the program.
+    fn on_close(&mut self, _: CloseCode, _: &str) {
+
+        self.channel_sender.send(Event::Disconnect).unwrap();
+    }
 }
 
 fn main() {
@@ -132,83 +140,96 @@ fn main() {
         });
     });
 
-    if let Ok(Event::Connect(sender)) = channel_receiver.recv() {
+    /* the program halts here until a concrete
+       connection attempt status is established */
+    let channel_message = channel_receiver.recv().unwrap();
 
-        const WINDOW_WIDTH: f64 = 800.0;
-        const WINDOW_HEIGHT: f64 = 600.0;
+    let sender = match channel_message {
+        Event::Connect(s) => s,
+        _ => {
+            panic!("Unexpected channel message.");
+        }
+    };
 
-        let mut window: PistonWindow = WindowSettings::new(
-            "rust-blackjack",
-            [
-                WINDOW_WIDTH,
-                WINDOW_HEIGHT,
-            ]
-        )
-        .fullscreen(false)
-        .exit_on_esc(true)
-        .build()
-        .unwrap();
+    const WINDOW_WIDTH: f64 = 800.0;
+    const WINDOW_HEIGHT: f64 = 600.0;
 
-        let cards_images = cards::load_all_cards_textures(&mut window);
+    let mut window: PistonWindow = WindowSettings::new(
+        "rust-blackjack",
+        [
+            WINDOW_WIDTH,
+            WINDOW_HEIGHT,
+        ]
+    )
+    .fullscreen(false)
+    .exit_on_esc(true)
+    .build()
+    .unwrap();
 
-        while let Some(event) = window.next() {
+    let cards_images = cards::load_all_cards_textures(&mut window);
 
-            if let Some(Button::Keyboard(Key::Return)) = event.press_args() {
+    while let Some(event) = window.next() {
 
-                let hit_message = CardMessage {
-                    action: CardAction::Hit,
-                    card_index: 0,
-                };
+        if Ok(Event::Disconnect) == channel_receiver.try_recv() {
+            break;
+        }
 
-                let message = serde_json::to_string(&hit_message).unwrap();
+        if let Some(Button::Keyboard(Key::Return)) = event.press_args() {
 
-                sender.send(message).unwrap();
-            }
+            let hit_message = CardMessage {
+                action: CardAction::Hit,
+                card_index: 0,
+            };
 
-            window.draw_2d(
-                &event,
-                |context, window| {
+            let message = serde_json::to_string(&hit_message).unwrap();
 
-                    clear(
-                        [0.2, 0.5, 0.3, 1.0], /* green */
+            sender.send(message).unwrap();
+        }
+
+        window.draw_2d(
+            &event,
+            |context, window| {
+
+                clear(
+                    [0.2, 0.5, 0.3, 1.0], /* green */
+                    window,
+                );
+
+                let displayed_cards = card_mutex_arc.lock().unwrap();
+                if displayed_cards.is_empty() {
+                    return;
+                }
+
+                const CARD_HORIZONTAL_POSITION: f64 = 300.0;
+                const CARD_VERTICAL_POSITION: f64 = 400.0;
+                const CARD_DIMENSIONS_SCALE: f64 = 0.5;
+
+                let mut card_horizontal_position: f64 = CARD_HORIZONTAL_POSITION;
+                let mut card_vertical_position: f64 = CARD_VERTICAL_POSITION;
+
+                for card_index in 0..displayed_cards.len() {
+
+                    image(
+                        &cards_images[
+                            *displayed_cards.get(card_index)
+                                .unwrap() as usize
+                        ],
+                        context.transform.trans(
+                            card_horizontal_position,
+                            card_vertical_position,
+                        ).scale(
+                            CARD_DIMENSIONS_SCALE,
+                            CARD_DIMENSIONS_SCALE
+                        ),
                         window,
                     );
 
-                    let displayed_cards = card_mutex_arc.lock().unwrap();
-                    if !displayed_cards.is_empty() {
-
-                        const CARD_HORIZONTAL_POSITION: f64 = 300.0;
-                        const CARD_VERTICAL_POSITION: f64 = 400.0;
-                        const CARD_DIMENSIONS_SCALE: f64 = 0.5;
-
-                        let mut card_horizontal_position: f64 = CARD_HORIZONTAL_POSITION;
-                        let mut card_vertical_position: f64 = CARD_VERTICAL_POSITION;
-
-                        for card_index in 0..displayed_cards.len() {
-
-                            image(
-                                &cards_images[
-                                    *displayed_cards.get(card_index)
-                                        .unwrap() as usize
-                                ],
-                                context.transform.trans(
-                                    card_horizontal_position,
-                                    card_vertical_position,
-                                ).scale(
-                                    CARD_DIMENSIONS_SCALE,
-                                    CARD_DIMENSIONS_SCALE
-                                ),
-                                window,
-                            );
-
-                            const CARDS_DISTANCE: f64 = 40.0;
-                            card_horizontal_position += CARDS_DISTANCE;
-                            card_vertical_position += CARDS_DISTANCE;
-                        }
-                    }
+                    const CARDS_DISTANCE: f64 = 40.0;
+                    card_horizontal_position += CARDS_DISTANCE;
+                    card_vertical_position += CARDS_DISTANCE;
                 }
-            );
-        }
+            }
+        );
     }
 
     /* the socket thread is terminated here as well,
