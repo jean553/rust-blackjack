@@ -36,4 +36,10 @@ cargo build --release
 
 ## Credits
 
+### Images
+
 Playing cards images from https://code.google.com/archive/p/vector-playing-cards/ (public domain).
+
+### Fonts
+
+* Cambay - https://fontlibrary.org/en/font/cambay - SIL OpenFont License - by Pooja Saxena (http://www.poojasaxena.in/)
