@@ -1,3 +1,5 @@
+#![deny(warnings)]
+
 extern crate ws;
 extern crate rand;
 extern crate serde;
