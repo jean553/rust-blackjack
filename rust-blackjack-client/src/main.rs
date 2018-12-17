@@ -212,7 +212,7 @@ fn main() {
 
     const TITLE_FONT_PATH: &str = "res/title_font.ttf";
 
-    let mut title_glyphs = Glyphs::new(
+    let mut glyphs = Glyphs::new(
         TITLE_FONT_PATH,
         window.factory.clone(),
         TextureSettings::new()
@@ -255,7 +255,7 @@ fn main() {
                     FONT_SIZE
                 ).draw(
                     "Blackjack",
-                    &mut title_glyphs,
+                    &mut glyphs,
                     &context.draw_state,
                     context.transform.trans(
                         TITLE_HORIZONTAL_POSITION,
@@ -274,7 +274,7 @@ fn main() {
                     FONT_SIZE
                 ).draw(
                     &*hand_points.to_string(),
-                    &mut title_glyphs,
+                    &mut glyphs,
                     &context.draw_state,
                     context.transform.trans(
                         POINTS_HORIZONTAL_POSITION,
