@@ -245,14 +245,13 @@ fn main() {
                     window,
                 );
 
-                const FONT_SIZE: u32 = 64;
-
+                const TITLE_FONT_SIZE: u32 = 64;
                 const TITLE_HORIZONTAL_POSITION: f64 = 275.0;
                 const TITLE_VERTICAL_POSITION: f64 = 80.0;
 
                 text::Text::new_color(
                     [1.0, 1.0, 1.0, 1.0], /* white */
-                    FONT_SIZE
+                    TITLE_FONT_SIZE,
                 ).draw(
                     "Blackjack",
                     &mut glyphs,
@@ -264,6 +263,7 @@ fn main() {
                     window,
                 ).unwrap();
 
+                const POINTS_FONT_SIZE: u32 = 32;
                 const POINTS_HORIZONTAL_POSITION: f64 = 400.0;
                 const POINTS_VERTICAL_POSITION: f64 = 400.0;
 
@@ -271,7 +271,7 @@ fn main() {
 
                 text::Text::new_color(
                     [1.0, 1.0, 1.0, 1.0], /* white */
-                    FONT_SIZE
+                    POINTS_FONT_SIZE,
                 ).draw(
                     &*hand_points.to_string(),
                     &mut glyphs,
@@ -279,6 +279,24 @@ fn main() {
                     context.transform.trans(
                         POINTS_HORIZONTAL_POSITION,
                         POINTS_VERTICAL_POSITION,
+                    ),
+                    window,
+                ).unwrap();
+
+                const INFO_FONT_SIZE: u32 = 24;
+                const HIT_INFO_HORIZONTAL_POSITION: f64 = 600.0;
+                const HIT_INFO_VERTICAL_POSITION: f64 = 550.0;
+
+                text::Text::new_color(
+                    [1.0, 1.0, 1.0, 1.0], /* white */
+                    INFO_FONT_SIZE,
+                ).draw(
+                    "HIT - press Enter",
+                    &mut glyphs,
+                    &context.draw_state,
+                    context.transform.trans(
+                        HIT_INFO_HORIZONTAL_POSITION,
+                        HIT_INFO_VERTICAL_POSITION,
                     ),
                     window,
                 ).unwrap();
