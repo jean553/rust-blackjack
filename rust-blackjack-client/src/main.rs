@@ -108,8 +108,12 @@ impl Handler for Client {
             let mut hand_points = self.hand_points_arc.lock().
                 unwrap();
 
+            let card_index = data.card_index;
+
             const TEN_POINTS_CARDS_START_INDEX: u8 = 32;
-            if data.card_index >= TEN_POINTS_CARDS_START_INDEX {
+            const ACE_CARDS_START_INDEX: u8 = 47;
+            if card_index >= TEN_POINTS_CARDS_START_INDEX &&
+                card_index < ACE_CARDS_START_INDEX {
 
                 const TEN_VALUE_CARDS_POINTS_AMOUNT: u8 = 10;
                 *hand_points += TEN_VALUE_CARDS_POINTS_AMOUNT;
@@ -117,9 +121,18 @@ impl Handler for Client {
                 return Ok(());
             }
 
+            if card_index >= ACE_CARDS_START_INDEX {
+
+                /* FIXME: ace value should be 1 or 11 */
+                const ACE_CARDS_POINTS_AMOUNT: u8 = 11;
+                *hand_points += ACE_CARDS_POINTS_AMOUNT;
+
+                return Ok(());
+            }
+
             const CARDS_WITH_SAME_VALUE_BY_COLOR: u8 = 4;
             const MINIMUM_CARD_VALUE: u8 = 2;
-            *hand_points += data.card_index / CARDS_WITH_SAME_VALUE_BY_COLOR
+            *hand_points += card_index / CARDS_WITH_SAME_VALUE_BY_COLOR
                 + MINIMUM_CARD_VALUE;
         }
 
