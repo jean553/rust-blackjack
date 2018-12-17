@@ -108,8 +108,12 @@ impl Handler for Client {
             let mut hand_points = self.hand_points_arc.lock().
                 unwrap();
 
+            let card_index = data.card_index;
+
             const TEN_POINTS_CARDS_START_INDEX: u8 = 32;
-            if data.card_index >= TEN_POINTS_CARDS_START_INDEX {
+            const ACE_CARDS_START_INDEX: u8 = 47;
+            if card_index >= TEN_POINTS_CARDS_START_INDEX &&
+                card_index < ACE_CARDS_START_INDEX {
 
                 const TEN_VALUE_CARDS_POINTS_AMOUNT: u8 = 10;
                 *hand_points += TEN_VALUE_CARDS_POINTS_AMOUNT;
@@ -117,9 +121,18 @@ impl Handler for Client {
                 return Ok(());
             }
 
+            if card_index >= ACE_CARDS_START_INDEX {
+
+                /* FIXME: ace value should be 1 or 11 */
+                const ACE_CARDS_POINTS_AMOUNT: u8 = 11;
+                *hand_points += ACE_CARDS_POINTS_AMOUNT;
+
+                return Ok(());
+            }
+
             const CARDS_WITH_SAME_VALUE_BY_COLOR: u8 = 4;
             const MINIMUM_CARD_VALUE: u8 = 2;
-            *hand_points += data.card_index / CARDS_WITH_SAME_VALUE_BY_COLOR
+            *hand_points += card_index / CARDS_WITH_SAME_VALUE_BY_COLOR
                 + MINIMUM_CARD_VALUE;
         }
 
@@ -199,7 +212,7 @@ fn main() {
 
     const TITLE_FONT_PATH: &str = "res/title_font.ttf";
 
-    let mut title_glyphs = Glyphs::new(
+    let mut glyphs = Glyphs::new(
         TITLE_FONT_PATH,
         window.factory.clone(),
         TextureSettings::new()
@@ -232,17 +245,16 @@ fn main() {
                     window,
                 );
 
-                const FONT_SIZE: u32 = 64;
-
+                const TITLE_FONT_SIZE: u32 = 64;
                 const TITLE_HORIZONTAL_POSITION: f64 = 275.0;
                 const TITLE_VERTICAL_POSITION: f64 = 80.0;
 
                 text::Text::new_color(
                     [1.0, 1.0, 1.0, 1.0], /* white */
-                    FONT_SIZE
+                    TITLE_FONT_SIZE,
                 ).draw(
                     "Blackjack",
-                    &mut title_glyphs,
+                    &mut glyphs,
                     &context.draw_state,
                     context.transform.trans(
                         TITLE_HORIZONTAL_POSITION,
@@ -251,6 +263,7 @@ fn main() {
                     window,
                 ).unwrap();
 
+                const POINTS_FONT_SIZE: u32 = 32;
                 const POINTS_HORIZONTAL_POSITION: f64 = 400.0;
                 const POINTS_VERTICAL_POSITION: f64 = 400.0;
 
@@ -258,14 +271,32 @@ fn main() {
 
                 text::Text::new_color(
                     [1.0, 1.0, 1.0, 1.0], /* white */
-                    FONT_SIZE
+                    POINTS_FONT_SIZE,
                 ).draw(
                     &*hand_points.to_string(),
-                    &mut title_glyphs,
+                    &mut glyphs,
                     &context.draw_state,
                     context.transform.trans(
                         POINTS_HORIZONTAL_POSITION,
                         POINTS_VERTICAL_POSITION,
+                    ),
+                    window,
+                ).unwrap();
+
+                const INFO_FONT_SIZE: u32 = 24;
+                const HIT_INFO_HORIZONTAL_POSITION: f64 = 600.0;
+                const HIT_INFO_VERTICAL_POSITION: f64 = 550.0;
+
+                text::Text::new_color(
+                    [1.0, 1.0, 1.0, 1.0], /* white */
+                    INFO_FONT_SIZE,
+                ).draw(
+                    "HIT - press Enter",
+                    &mut glyphs,
+                    &context.draw_state,
+                    context.transform.trans(
+                        HIT_INFO_HORIZONTAL_POSITION,
+                        HIT_INFO_VERTICAL_POSITION,
                     ),
                     window,
                 ).unwrap();
