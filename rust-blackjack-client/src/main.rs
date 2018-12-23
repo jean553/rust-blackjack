@@ -53,7 +53,7 @@ enum CardAction {
 }
 
 #[derive(Serialize, Deserialize)]
-struct CardMessage {
+struct SocketMessage {
     action: CardAction,
     card_index: u8,
 }
@@ -93,7 +93,7 @@ impl Handler for Client {
         message: Message,
     ) -> Result<()> {
 
-        let data: CardMessage = serde_json::from_str(
+        let data: SocketMessage = serde_json::from_str(
             &message.into_text()
                 .unwrap()
         ).unwrap();
@@ -226,7 +226,7 @@ fn main() {
 
         if let Some(Button::Keyboard(Key::Return)) = event.press_args() {
 
-            let hit_message = CardMessage {
+            let hit_message = SocketMessage {
                 action: CardAction::Hit,
                 card_index: 0,
             };
