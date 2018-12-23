@@ -20,6 +20,7 @@ use rand::{thread_rng, Rng};
 
 #[derive(Serialize, Deserialize, PartialEq)]
 enum CardAction {
+    NewPlayer,
     SendCard,
     Hit,
 }
@@ -29,9 +30,10 @@ struct Server {
 }
 
 #[derive(Serialize, Deserialize)]
-struct CardMessage {
+struct SocketMessage {
     action: CardAction,
     card_index: u8,
+    text: String,
 }
 
 impl Server {
@@ -44,12 +46,13 @@ impl Server {
         const MIN_CARD_ID: u8 = 0;
         const MAX_CARD_ID: u8 = 51;
 
-        let card_message = CardMessage {
+        let card_message = SocketMessage {
             action: CardAction::SendCard,
             card_index: thread_rng().gen_range(
                 MIN_CARD_ID,
                 MAX_CARD_ID + 1
-            )
+            ),
+            text: "".to_string(),
         };
 
         let message = serde_json::to_string(&card_message).unwrap();
@@ -91,7 +94,7 @@ impl Handler for Server {
         message: Message,
     ) -> Result<()> {
 
-        let data: CardMessage = serde_json::from_str(
+        let data: SocketMessage = serde_json::from_str(
             &message.into_text()
                 .unwrap()
         ).unwrap();
@@ -99,6 +102,13 @@ impl Handler for Server {
         if data.action == CardAction::Hit {
 
             self.send_card();
+
+            return Ok(());
+        }
+
+        if data.action == CardAction::NewPlayer {
+
+            println!("Player name: {}", data.text);
         }
 
         Ok(())

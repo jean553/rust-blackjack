@@ -48,14 +48,16 @@ enum Event {
 
 #[derive(Serialize, Deserialize, PartialEq)]
 enum CardAction {
+    NewPlayer,
     SendCard,
     Hit,
 }
 
 #[derive(Serialize, Deserialize)]
-struct CardMessage {
+struct SocketMessage {
     action: CardAction,
     card_index: u8,
+    text: String,
 }
 
 struct Client {
@@ -93,7 +95,7 @@ impl Handler for Client {
         message: Message,
     ) -> Result<()> {
 
-        let data: CardMessage = serde_json::from_str(
+        let data: SocketMessage = serde_json::from_str(
             &message.into_text()
                 .unwrap()
         ).unwrap();
@@ -193,6 +195,15 @@ fn main() {
         }
     };
 
+    let new_player_message = SocketMessage {
+        action: CardAction::NewPlayer,
+        card_index: 0,
+        text: input,
+    };
+
+    let message = serde_json::to_string(&new_player_message).unwrap();
+    sender.send(message).unwrap();
+
     const WINDOW_WIDTH: f64 = 800.0;
     const WINDOW_HEIGHT: f64 = 600.0;
 
@@ -226,9 +237,10 @@ fn main() {
 
         if let Some(Button::Keyboard(Key::Return)) = event.press_args() {
 
-            let hit_message = CardMessage {
+            let hit_message = SocketMessage {
                 action: CardAction::Hit,
                 card_index: 0,
+                text: "".to_string(),
             };
 
             let message = serde_json::to_string(&hit_message).unwrap();
