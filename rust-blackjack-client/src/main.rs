@@ -47,7 +47,7 @@ enum Event {
 }
 
 #[derive(Serialize, Deserialize, PartialEq)]
-enum CardAction {
+enum MessageAction {
     NewPlayer,
     SendCard,
     Hit,
@@ -55,7 +55,7 @@ enum CardAction {
 
 #[derive(Serialize, Deserialize)]
 struct SocketMessage {
-    action: CardAction,
+    action: MessageAction,
     card_index: u8,
     text: String,
 }
@@ -100,7 +100,7 @@ impl Handler for Client {
                 .unwrap()
         ).unwrap();
 
-        if data.action == CardAction::SendCard {
+        if data.action == MessageAction::SendCard {
 
             let mut displayed_cards = self.cards_mutex_arc.lock()
                 .unwrap();
@@ -196,7 +196,7 @@ fn main() {
     };
 
     let new_player_message = SocketMessage {
-        action: CardAction::NewPlayer,
+        action: MessageAction::NewPlayer,
         card_index: 0,
         text: input,
     };
@@ -238,7 +238,7 @@ fn main() {
         if let Some(Button::Keyboard(Key::Return)) = event.press_args() {
 
             let hit_message = SocketMessage {
-                action: CardAction::Hit,
+                action: MessageAction::Hit,
                 card_index: 0,
                 text: "".to_string(),
             };
