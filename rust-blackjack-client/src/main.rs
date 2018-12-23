@@ -48,6 +48,7 @@ enum Event {
 
 #[derive(Serialize, Deserialize, PartialEq)]
 enum CardAction {
+    NewPlayer,
     SendCard,
     Hit,
 }
@@ -56,6 +57,7 @@ enum CardAction {
 struct SocketMessage {
     action: CardAction,
     card_index: u8,
+    text: String,
 }
 
 struct Client {
@@ -193,6 +195,15 @@ fn main() {
         }
     };
 
+    let new_player_message = SocketMessage {
+        action: CardAction::NewPlayer,
+        card_index: 0,
+        text: input,
+    };
+
+    let message = serde_json::to_string(&new_player_message).unwrap();
+    sender.send(message).unwrap();
+
     const WINDOW_WIDTH: f64 = 800.0;
     const WINDOW_HEIGHT: f64 = 600.0;
 
@@ -229,6 +240,7 @@ fn main() {
             let hit_message = SocketMessage {
                 action: CardAction::Hit,
                 card_index: 0,
+                text: "".to_string(),
             };
 
             let message = serde_json::to_string(&hit_message).unwrap();
