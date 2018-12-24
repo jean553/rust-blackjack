@@ -156,6 +156,7 @@ fn main() {
     println!("Player name: ");
     let mut player_name: String = String::new();
     stdin().read_line(&mut player_name).expect("Input error.");
+    let player_name = player_name.trim().to_string();
 
     let (
         channel_sender,
@@ -198,7 +199,7 @@ fn main() {
     let new_player_message = SocketMessage {
         action: MessageAction::NewPlayer,
         card_index: 0,
-        text: player_name,
+        text: player_name.clone(),
     };
 
     let message = serde_json::to_string(&new_player_message).unwrap();
@@ -297,7 +298,7 @@ fn main() {
 
                 const INFO_FONT_SIZE: u32 = 24;
                 const HIT_INFO_HORIZONTAL_POSITION: f64 = 600.0;
-                const HIT_INFO_VERTICAL_POSITION: f64 = 550.0;
+                const HIT_INFO_VERTICAL_POSITION: f64 = 400.0;
 
                 text::Text::new_color(
                     [1.0, 1.0, 1.0, 1.0], /* white */
@@ -309,6 +310,24 @@ fn main() {
                     context.transform.trans(
                         HIT_INFO_HORIZONTAL_POSITION,
                         HIT_INFO_VERTICAL_POSITION,
+                    ),
+                    window,
+                ).unwrap();
+
+                const PLAYER_NAME_FONT_SIZE: u32 = 16;
+                const PLAYER_NAME_HORIZONTAL_POSITION: f64 = 300.0;
+                const PLAYER_NAME_VERTICAL_POSITION: f64 = 380.0;
+
+                text::Text::new_color(
+                    [1.0, 1.0, 1.0, 1.0], /* white */
+                    PLAYER_NAME_FONT_SIZE,
+                ).draw(
+                    &player_name,
+                    &mut glyphs,
+                    &context.draw_state,
+                    context.transform.trans(
+                        PLAYER_NAME_HORIZONTAL_POSITION,
+                        PLAYER_NAME_VERTICAL_POSITION,
                     ),
                     window,
                 ).unwrap();
