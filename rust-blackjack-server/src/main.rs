@@ -27,6 +27,7 @@ enum MessageAction {
 
 struct Server {
     output: Sender,
+    cards: Vec<u8>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -38,20 +39,35 @@ struct SocketMessage {
 
 impl Server {
 
+    /// Creates a new server.
+    ///
+    /// # Args:
+    ///
+    /// `output` - the server ws sender in order to send back information
+    fn new(output: ws::Sender) -> Server {
+
+        /* FIXME: a blackjack deck contains five cards games */
+        const MIN_CARD_ID: u8 = 0;
+        const MAX_CARD_ID: u8 = 52;
+
+        let mut all_cards: Vec<u8> = (MIN_CARD_ID..MAX_CARD_ID).collect();
+        let cards: &mut [u8] = &mut all_cards;
+        thread_rng().shuffle(cards);
+
+        Server {
+            output: output,
+            cards: all_cards,
+        }
+    }
+
     /// Sends one random card to the client through the socket.
     ///
     /// FIXME: we randomly select a card for now, should be popped from a queue
-    fn send_card(&self) {
-
-        const MIN_CARD_ID: u8 = 0;
-        const MAX_CARD_ID: u8 = 51;
+    fn send_card(&mut self) {
 
         let card_message = SocketMessage {
             action: MessageAction::SendCard,
-            card_index: thread_rng().gen_range(
-                MIN_CARD_ID,
-                MAX_CARD_ID + 1
-            ),
+            card_index: self.cards.pop().unwrap(),
             text: "".to_string(),
         };
 
@@ -124,6 +140,6 @@ fn main() {
 
     const LISTENING_ADDRESS: &str = "127.0.0.1:3000";
     listen(LISTENING_ADDRESS, |output| {
-        Server { output }
+        Server::new(output)
     }).unwrap();
 }

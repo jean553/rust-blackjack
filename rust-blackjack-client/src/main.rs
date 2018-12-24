@@ -253,17 +253,21 @@ fn main() {
             &event,
             |context, window| {
 
+                const GREEN_COLOR: [f32; 4] = [0.2, 0.5, 0.3, 1.0];
+
                 clear(
-                    [0.2, 0.5, 0.3, 1.0], /* green */
+                    GREEN_COLOR,
                     window,
                 );
+
+                const WHITE_COLOR: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 
                 const TITLE_FONT_SIZE: u32 = 64;
                 const TITLE_HORIZONTAL_POSITION: f64 = 275.0;
                 const TITLE_VERTICAL_POSITION: f64 = 80.0;
 
                 text::Text::new_color(
-                    [1.0, 1.0, 1.0, 1.0], /* white */
+                    WHITE_COLOR,
                     TITLE_FONT_SIZE,
                 ).draw(
                     "Blackjack",
@@ -283,7 +287,7 @@ fn main() {
                 let hand_points = hand_points_arc.lock().unwrap();
 
                 text::Text::new_color(
-                    [1.0, 1.0, 1.0, 1.0], /* white */
+                    WHITE_COLOR,
                     POINTS_FONT_SIZE,
                 ).draw(
                     &*hand_points.to_string(),
@@ -301,7 +305,7 @@ fn main() {
                 const HIT_INFO_VERTICAL_POSITION: f64 = 400.0;
 
                 text::Text::new_color(
-                    [1.0, 1.0, 1.0, 1.0], /* white */
+                    WHITE_COLOR,
                     INFO_FONT_SIZE,
                 ).draw(
                     "HIT - press Enter",
@@ -319,7 +323,7 @@ fn main() {
                 const PLAYER_NAME_VERTICAL_POSITION: f64 = 380.0;
 
                 text::Text::new_color(
-                    [1.0, 1.0, 1.0, 1.0], /* white */
+                    WHITE_COLOR,
                     PLAYER_NAME_FONT_SIZE,
                 ).draw(
                     &player_name,
