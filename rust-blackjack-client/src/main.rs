@@ -154,8 +154,8 @@ fn main() {
     let hand_points_arc: Arc<Mutex<u8>> = Arc::new(Mutex::new(0));
 
     println!("Player name: ");
-    let mut input: String = String::new();
-    stdin().read_line(&mut input).expect("Input error.");
+    let mut player_name: String = String::new();
+    stdin().read_line(&mut player_name).expect("Input error.");
 
     let (
         channel_sender,
@@ -198,7 +198,7 @@ fn main() {
     let new_player_message = SocketMessage {
         action: MessageAction::NewPlayer,
         card_index: 0,
-        text: input,
+        text: player_name,
     };
 
     let message = serde_json::to_string(&new_player_message).unwrap();
