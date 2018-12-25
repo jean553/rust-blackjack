@@ -64,6 +64,7 @@ struct SocketMessage {
 struct Client {
     cards_mutex_arc: Arc<Mutex<Vec<u16>>>,
     hand_points_arc: Arc<Mutex<u16>>,
+    cards_amount_arc: Arc<Mutex<u16>>,
     socket_sender: Sender,
     channel_sender: mpsc::Sender<Event>,
 }
@@ -107,6 +108,10 @@ impl Handler for Client {
                 .unwrap();
 
             displayed_cards.push(data.card_index);
+
+            let mut remaining_cards_amount = self.cards_amount_arc.lock()
+                .unwrap();
+            *remaining_cards_amount = data.cards_amount;
 
             let mut hand_points = self.hand_points_arc.lock().
                 unwrap();
@@ -153,6 +158,7 @@ fn main() {
 
     let cards_mutex_arc = Arc::new(Mutex::new(vec![]));
     let hand_points_arc: Arc<Mutex<u16>> = Arc::new(Mutex::new(0));
+    let remaining_cards_amount_arc: Arc<Mutex<u16>> = Arc::new(Mutex::new(0));
 
     println!("Player name: ");
     let mut player_name: String = String::new();
@@ -170,6 +176,7 @@ fn main() {
        still used by the main thread */
     let cards_mutex_arc_clone = cards_mutex_arc.clone();
     let hand_points_arc_clone = hand_points_arc.clone();
+    let remaining_cards_amount_arc_clone = remaining_cards_amount_arc.clone();
 
     /* the socket handling is performed into a dedicated thread,
      * otherwise the program would just block here waiting for messages */
@@ -180,6 +187,7 @@ fn main() {
             Client {
                 cards_mutex_arc: cards_mutex_arc_clone.clone(),
                 hand_points_arc: hand_points_arc_clone.clone(),
+                cards_amount_arc: remaining_cards_amount_arc_clone.clone(),
                 socket_sender: sender,
                 channel_sender: channel_sender.clone(),
             }
@@ -335,6 +343,26 @@ fn main() {
                     context.transform.trans(
                         PLAYER_NAME_HORIZONTAL_POSITION,
                         PLAYER_NAME_VERTICAL_POSITION,
+                    ),
+                    window,
+                ).unwrap();
+
+                const REMAINING_CARDS_AMOUNT_FONT_SIZE: u32 = 16;
+                const REMAINING_CARDS_AMOUNT_HORIZONTAL_POSITION: f64 = 700.0;
+                const REMAINING_CARDS_AMOUNT_VERTICAL_POSITION: f64 = 50.0;
+
+                let remaining_cards_amount = remaining_cards_amount_arc.lock().unwrap();
+
+                text::Text::new_color(
+                    WHITE_COLOR,
+                    REMAINING_CARDS_AMOUNT_FONT_SIZE,
+                ).draw(
+                    &*remaining_cards_amount.to_string(),
+                    &mut glyphs,
+                    &context.draw_state,
+                    context.transform.trans(
+                        REMAINING_CARDS_AMOUNT_HORIZONTAL_POSITION,
+                        REMAINING_CARDS_AMOUNT_VERTICAL_POSITION,
                     ),
                     window,
                 ).unwrap();
