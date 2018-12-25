@@ -27,13 +27,13 @@ enum MessageAction {
 
 struct Server {
     output: Sender,
-    cards: Vec<u8>,
+    cards: Vec<u16>,
 }
 
 #[derive(Serialize, Deserialize)]
 struct SocketMessage {
     action: MessageAction,
-    card_index: u8,
+    card_index: u16,
     text: String,
 }
 
@@ -46,12 +46,11 @@ impl Server {
     /// `output` - the server ws sender in order to send back information
     fn new(output: ws::Sender) -> Server {
 
-        /* FIXME: a blackjack deck contains five cards games */
-        const MIN_CARD_ID: u8 = 0;
-        const MAX_CARD_ID: u8 = 52;
+        const MIN_CARD_ID: u16 = 0;
+        const MAX_CARD_ID: u16 = 416;
 
-        let mut all_cards: Vec<u8> = (MIN_CARD_ID..MAX_CARD_ID).collect();
-        let cards: &mut [u8] = &mut all_cards;
+        let mut all_cards: Vec<u16> = (MIN_CARD_ID..MAX_CARD_ID).collect();
+        let cards: &mut [u16] = &mut all_cards;
         thread_rng().shuffle(cards);
 
         Server {
