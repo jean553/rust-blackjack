@@ -61,8 +61,6 @@ impl Server {
     }
 
     /// Sends one random card to the client through the socket.
-    ///
-    /// FIXME: we randomly select a card for now, should be popped from a queue
     fn send_card(&mut self) {
 
         let card_message = SocketMessage {
