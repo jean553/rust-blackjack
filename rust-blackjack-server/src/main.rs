@@ -38,6 +38,7 @@ struct Server {
 struct SocketMessage {
     action: MessageAction,
     card_index: u16,
+    cards_amount: u16,
     text: String,
 }
 
@@ -69,6 +70,7 @@ impl Server {
         let card_message = SocketMessage {
             action: MessageAction::SendCard,
             card_index: self.cards.pop().unwrap(),
+            cards_amount: self.cards.len() as u16,
             text: "".to_string(),
         };
 

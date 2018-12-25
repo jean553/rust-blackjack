@@ -56,13 +56,14 @@ enum MessageAction {
 #[derive(Serialize, Deserialize)]
 struct SocketMessage {
     action: MessageAction,
-    card_index: u8,
+    card_index: u16,
+    cards_amount: u16,
     text: String,
 }
 
 struct Client {
-    cards_mutex_arc: Arc<Mutex<Vec<u8>>>,
-    hand_points_arc: Arc<Mutex<u8>>,
+    cards_mutex_arc: Arc<Mutex<Vec<u16>>>,
+    hand_points_arc: Arc<Mutex<u16>>,
     socket_sender: Sender,
     channel_sender: mpsc::Sender<Event>,
 }
@@ -112,12 +113,12 @@ impl Handler for Client {
 
             let card_index = data.card_index;
 
-            const TEN_POINTS_CARDS_START_INDEX: u8 = 32;
-            const ACE_CARDS_START_INDEX: u8 = 47;
+            const TEN_POINTS_CARDS_START_INDEX: u16 = 32;
+            const ACE_CARDS_START_INDEX: u16 = 47;
             if card_index >= TEN_POINTS_CARDS_START_INDEX &&
                 card_index < ACE_CARDS_START_INDEX {
 
-                const TEN_VALUE_CARDS_POINTS_AMOUNT: u8 = 10;
+                const TEN_VALUE_CARDS_POINTS_AMOUNT: u16 = 10;
                 *hand_points += TEN_VALUE_CARDS_POINTS_AMOUNT;
 
                 return Ok(());
@@ -126,14 +127,14 @@ impl Handler for Client {
             if card_index >= ACE_CARDS_START_INDEX {
 
                 /* FIXME: ace value should be 1 or 11 */
-                const ACE_CARDS_POINTS_AMOUNT: u8 = 11;
+                const ACE_CARDS_POINTS_AMOUNT: u16 = 11;
                 *hand_points += ACE_CARDS_POINTS_AMOUNT;
 
                 return Ok(());
             }
 
-            const CARDS_WITH_SAME_VALUE_BY_COLOR: u8 = 4;
-            const MINIMUM_CARD_VALUE: u8 = 2;
+            const CARDS_WITH_SAME_VALUE_BY_COLOR: u16 = 4;
+            const MINIMUM_CARD_VALUE: u16 = 2;
             *hand_points += card_index / CARDS_WITH_SAME_VALUE_BY_COLOR
                 + MINIMUM_CARD_VALUE;
         }
@@ -151,7 +152,7 @@ impl Handler for Client {
 fn main() {
 
     let cards_mutex_arc = Arc::new(Mutex::new(vec![]));
-    let hand_points_arc: Arc<Mutex<u8>> = Arc::new(Mutex::new(0));
+    let hand_points_arc: Arc<Mutex<u16>> = Arc::new(Mutex::new(0));
 
     println!("Player name: ");
     let mut player_name: String = String::new();
@@ -199,6 +200,7 @@ fn main() {
     let new_player_message = SocketMessage {
         action: MessageAction::NewPlayer,
         card_index: 0,
+        cards_amount: 0,
         text: player_name.clone(),
     };
 
@@ -241,6 +243,7 @@ fn main() {
             let hit_message = SocketMessage {
                 action: MessageAction::Hit,
                 card_index: 0,
+                cards_amount: 0,
                 text: "".to_string(),
             };
 
