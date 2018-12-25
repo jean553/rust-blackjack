@@ -350,10 +350,12 @@ fn main() {
 
                 for card_index in 0..displayed_cards.len() {
 
+                    const ONE_GAME_CARDS_AMOUNT: usize = 52;
+
                     image(
                         &cards_images[
                             *displayed_cards.get(card_index)
-                                .unwrap() as usize
+                                .unwrap() as usize % ONE_GAME_CARDS_AMOUNT
                         ],
                         context.transform.trans(
                             card_horizontal_position,
