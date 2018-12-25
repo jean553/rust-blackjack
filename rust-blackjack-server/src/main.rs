@@ -25,6 +25,10 @@ enum MessageAction {
     Hit,
 }
 
+/// Contains the web socket output sender and the cards array.
+///
+/// NOTE: there are many more optimized ways to store the cards (memory and time complexity), but
+/// we voluntarily keep a raw array to store them all in order to create a genuine black-jack game situation
 struct Server {
     output: Sender,
     cards: Vec<u16>,
