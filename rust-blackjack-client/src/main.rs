@@ -131,9 +131,19 @@ impl Handler for Client {
 
             if card_index >= ACE_CARDS_START_INDEX {
 
-                /* FIXME: ace value should be 1 or 11 */
-                const ACE_CARDS_POINTS_AMOUNT: u16 = 11;
-                *hand_points += ACE_CARDS_POINTS_AMOUNT;
+                const ACE_CARDS_FIRST_POINTS_AMOUNT: u16 = 1;
+                const ACE_CARDS_SECOND_POINTS_AMOUNT: u16 = 11;
+                const MAX_HAND_POINTS_FOR_ACE_CARDS_SECOND_POINTS_AMOUNT: u16 = 11;
+
+                /* FIXME: the player should also be able to
+                   select an ace value in some situations */
+
+                if *hand_points >= MAX_HAND_POINTS_FOR_ACE_CARDS_SECOND_POINTS_AMOUNT {
+                    *hand_points += ACE_CARDS_FIRST_POINTS_AMOUNT;
+                    return Ok(());
+                }
+
+                *hand_points += ACE_CARDS_SECOND_POINTS_AMOUNT;
 
                 return Ok(());
             }
