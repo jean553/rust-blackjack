@@ -59,11 +59,12 @@ struct SocketMessage {
     card_index: u16,
     cards_amount: u16,
     text: String,
+    player_handpoints: u8,
 }
 
 struct Client {
     cards_mutex_arc: Arc<Mutex<Vec<u16>>>,
-    hand_points_arc: Arc<Mutex<u16>>,
+    hand_points_arc: Arc<Mutex<u8>>,
     cards_amount_arc: Arc<Mutex<u16>>,
     socket_sender: Sender,
     channel_sender: mpsc::Sender<Event>,
@@ -115,44 +116,7 @@ impl Handler for Client {
 
             let mut hand_points = self.hand_points_arc.lock().
                 unwrap();
-
-            const ONE_SET_CARDS_AMOUNT: u16 = 52;
-            let card_index = data.card_index % ONE_SET_CARDS_AMOUNT;
-
-            const TEN_POINTS_CARDS_START_INDEX: u16 = 32;
-            const ACE_CARDS_START_INDEX: u16 = 47;
-            if card_index >= TEN_POINTS_CARDS_START_INDEX &&
-                card_index < ACE_CARDS_START_INDEX {
-
-                const TEN_VALUE_CARDS_POINTS_AMOUNT: u16 = 10;
-                *hand_points += TEN_VALUE_CARDS_POINTS_AMOUNT;
-
-                return Ok(());
-            }
-
-            if card_index >= ACE_CARDS_START_INDEX {
-
-                const ACE_CARDS_FIRST_POINTS_AMOUNT: u16 = 1;
-                const ACE_CARDS_SECOND_POINTS_AMOUNT: u16 = 11;
-                const MAX_HAND_POINTS_FOR_ACE_CARDS_SECOND_POINTS_AMOUNT: u16 = 11;
-
-                /* FIXME: the player should also be able to
-                   select an ace value in some situations */
-
-                if *hand_points >= MAX_HAND_POINTS_FOR_ACE_CARDS_SECOND_POINTS_AMOUNT {
-                    *hand_points += ACE_CARDS_FIRST_POINTS_AMOUNT;
-                    return Ok(());
-                }
-
-                *hand_points += ACE_CARDS_SECOND_POINTS_AMOUNT;
-
-                return Ok(());
-            }
-
-            const CARDS_WITH_SAME_VALUE_BY_COLOR: u16 = 4;
-            const MINIMUM_CARD_VALUE: u16 = 2;
-            *hand_points += card_index / CARDS_WITH_SAME_VALUE_BY_COLOR
-                + MINIMUM_CARD_VALUE;
+            *hand_points = data.player_handpoints;
         }
 
         Ok(())
@@ -168,7 +132,7 @@ impl Handler for Client {
 fn main() {
 
     let cards_mutex_arc = Arc::new(Mutex::new(vec![]));
-    let hand_points_arc: Arc<Mutex<u16>> = Arc::new(Mutex::new(0));
+    let hand_points_arc: Arc<Mutex<u8>> = Arc::new(Mutex::new(0));
     let remaining_cards_amount_arc: Arc<Mutex<u16>> = Arc::new(Mutex::new(0));
 
     println!("Player name: ");
@@ -221,6 +185,7 @@ fn main() {
         card_index: 0,
         cards_amount: 0,
         text: player_name.clone(),
+        player_handpoints: 0,
     };
 
     let message = serde_json::to_string(&new_player_message).unwrap();
@@ -264,6 +229,7 @@ fn main() {
                 card_index: 0,
                 cards_amount: 0,
                 text: "".to_string(),
+                player_handpoints: 0,
             };
 
             let message = serde_json::to_string(&hit_message).unwrap();

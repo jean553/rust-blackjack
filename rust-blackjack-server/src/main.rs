@@ -41,6 +41,7 @@ struct SocketMessage {
     card_index: u16,
     cards_amount: u16,
     text: String,
+    player_handpoints: u8,
 }
 
 impl Server {
@@ -71,19 +72,8 @@ impl Server {
 
         let card_index = self.cards.pop().unwrap();
 
-        let card_message = SocketMessage {
-            action: MessageAction::SendCard,
-            card_index: card_index,
-            cards_amount: self.cards.len() as u16,
-            text: "".to_string(),
-        };
-
-        let message = serde_json::to_string(&card_message).unwrap();
-
-        self.output.send(message).unwrap();
-
         const ONE_SET_CARDS_AMOUNT: u16 = 52;
-        let card_index = (card_index % ONE_SET_CARDS_AMOUNT) as u8;
+        let one_set_card_index = (card_index % ONE_SET_CARDS_AMOUNT) as u8;
 
         const TEN_POINTS_CARDS_START_INDEX: u8 = 32;
         const ACE_CARDS_START_INDEX: u8 = 47;
@@ -92,16 +82,13 @@ impl Server {
            of course we should be able to handle all the playing players */
         let player_handpoints = self.players_handpoints.get_mut(0).unwrap();
 
-        if card_index >= TEN_POINTS_CARDS_START_INDEX &&
-            card_index < ACE_CARDS_START_INDEX {
+        if one_set_card_index >= TEN_POINTS_CARDS_START_INDEX &&
+            one_set_card_index < ACE_CARDS_START_INDEX {
 
             const TEN_VALUE_CARDS_POINTS_AMOUNT: u8 = 10;
             *player_handpoints += TEN_VALUE_CARDS_POINTS_AMOUNT;
-
-            return;
         }
-
-        if card_index >= ACE_CARDS_START_INDEX {
+        else if one_set_card_index >= ACE_CARDS_START_INDEX {
 
             const ACE_CARDS_FIRST_POINTS_AMOUNT: u8 = 1;
             const ACE_CARDS_SECOND_POINTS_AMOUNT: u8 = 11;
@@ -112,18 +99,28 @@ impl Server {
 
             if *player_handpoints >= MAX_HAND_POINTS_FOR_ACE_CARDS_SECOND_POINTS_AMOUNT {
                 *player_handpoints += ACE_CARDS_FIRST_POINTS_AMOUNT;
-                return;
             }
 
             *player_handpoints += ACE_CARDS_SECOND_POINTS_AMOUNT;
+        } else {
 
-            return;
+            const CARDS_WITH_SAME_VALUE_BY_COLOR: u8 = 4;
+            const MINIMUM_CARD_VALUE: u8 = 2;
+            *player_handpoints += one_set_card_index / CARDS_WITH_SAME_VALUE_BY_COLOR
+                + MINIMUM_CARD_VALUE;
         }
 
-        const CARDS_WITH_SAME_VALUE_BY_COLOR: u8 = 4;
-        const MINIMUM_CARD_VALUE: u8 = 2;
-        *player_handpoints += card_index / CARDS_WITH_SAME_VALUE_BY_COLOR
-            + MINIMUM_CARD_VALUE;
+        let card_message = SocketMessage {
+            action: MessageAction::SendCard,
+            card_index: card_index,
+            cards_amount: self.cards.len() as u16,
+            text: "".to_string(),
+            player_handpoints: *player_handpoints,
+        };
+
+        let message = serde_json::to_string(&card_message).unwrap();
+
+        self.output.send(message).unwrap();
     }
 }
 
@@ -148,11 +145,6 @@ impl Handler for Server {
 
         self.send_card();
         self.send_card();
-
-        println!(
-            "Player hand points: {}",
-            *self.players_handpoints.get(0).unwrap()
-        );
 
         Ok(())
     }
@@ -187,6 +179,11 @@ impl Handler for Server {
         if data.action == MessageAction::NewPlayer {
 
             println!("Player name: {}", data.text);
+
+            println!(
+                "Player hand points: {}",
+                *self.players_handpoints.get(0).unwrap()
+            );
         }
 
         Ok(())
