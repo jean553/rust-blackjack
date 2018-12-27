@@ -116,7 +116,8 @@ impl Handler for Client {
             let mut hand_points = self.hand_points_arc.lock().
                 unwrap();
 
-            let card_index = data.card_index;
+            const ONE_SET_CARDS_AMOUNT: u16 = 52;
+            let card_index = data.card_index % ONE_SET_CARDS_AMOUNT;
 
             const TEN_POINTS_CARDS_START_INDEX: u16 = 32;
             const ACE_CARDS_START_INDEX: u16 = 47;
