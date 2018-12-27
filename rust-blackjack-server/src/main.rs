@@ -32,6 +32,7 @@ enum MessageAction {
 struct Server {
     output: Sender,
     cards: Vec<u16>,
+    players_handpoints: Vec<u8>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -40,6 +41,7 @@ struct SocketMessage {
     card_index: u16,
     cards_amount: u16,
     text: String,
+    player_handpoints: u8,
 }
 
 impl Server {
@@ -61,17 +63,59 @@ impl Server {
         Server {
             output: output,
             cards: all_cards,
+            players_handpoints: vec![],
         }
     }
 
     /// Sends one random card to the client through the socket.
     fn send_card(&mut self) {
 
+        let card_index = self.cards.pop().unwrap();
+
+        const ONE_SET_CARDS_AMOUNT: u16 = 52;
+        let one_set_card_index = (card_index % ONE_SET_CARDS_AMOUNT) as u8;
+
+        const TEN_POINTS_CARDS_START_INDEX: u8 = 32;
+        const ACE_CARDS_START_INDEX: u8 = 47;
+
+        /* FIXME: we handle only handpoints of the first player for now,
+           of course we should be able to handle all the playing players */
+        let player_handpoints = self.players_handpoints.get_mut(0).unwrap();
+
+        if one_set_card_index >= TEN_POINTS_CARDS_START_INDEX &&
+            one_set_card_index < ACE_CARDS_START_INDEX {
+
+            const TEN_VALUE_CARDS_POINTS_AMOUNT: u8 = 10;
+            *player_handpoints += TEN_VALUE_CARDS_POINTS_AMOUNT;
+        }
+        else if one_set_card_index >= ACE_CARDS_START_INDEX {
+
+            const ACE_CARDS_FIRST_POINTS_AMOUNT: u8 = 1;
+            const ACE_CARDS_SECOND_POINTS_AMOUNT: u8 = 11;
+            const MAX_HAND_POINTS_FOR_ACE_CARDS_SECOND_POINTS_AMOUNT: u8 = 11;
+
+            /* FIXME: the player should also be able to
+               select an ace value in some situations */
+
+            if *player_handpoints >= MAX_HAND_POINTS_FOR_ACE_CARDS_SECOND_POINTS_AMOUNT {
+                *player_handpoints += ACE_CARDS_FIRST_POINTS_AMOUNT;
+            }
+
+            *player_handpoints += ACE_CARDS_SECOND_POINTS_AMOUNT;
+        } else {
+
+            const CARDS_WITH_SAME_VALUE_BY_COLOR: u8 = 4;
+            const MINIMUM_CARD_VALUE: u8 = 2;
+            *player_handpoints += one_set_card_index / CARDS_WITH_SAME_VALUE_BY_COLOR
+                + MINIMUM_CARD_VALUE;
+        }
+
         let card_message = SocketMessage {
             action: MessageAction::SendCard,
-            card_index: self.cards.pop().unwrap(),
+            card_index: card_index,
             cards_amount: self.cards.len() as u16,
             text: "".to_string(),
+            player_handpoints: *player_handpoints,
         };
 
         let message = serde_json::to_string(&card_message).unwrap();
@@ -96,6 +140,8 @@ impl Handler for Server {
             "New connexion from {}.",
             handshake.remote_addr().unwrap().unwrap()
         );
+
+        self.players_handpoints.push(0);
 
         self.send_card();
         self.send_card();
@@ -122,12 +168,22 @@ impl Handler for Server {
 
             self.send_card();
 
+            println!(
+                "Player hand points: {}",
+                *self.players_handpoints.get(0).unwrap()
+            );
+
             return Ok(());
         }
 
         if data.action == MessageAction::NewPlayer {
 
             println!("Player name: {}", data.text);
+
+            println!(
+                "Player hand points: {}",
+                *self.players_handpoints.get(0).unwrap()
+            );
         }
 
         Ok(())
