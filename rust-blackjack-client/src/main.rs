@@ -249,6 +249,7 @@ fn main() {
                 );
 
                 const WHITE_COLOR: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
+                const RED_COLOR: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
 
                 const TITLE_FONT_SIZE: u32 = 64;
                 const TITLE_HORIZONTAL_POSITION: f64 = 275.0;
@@ -289,22 +290,42 @@ fn main() {
                 ).unwrap();
 
                 const INFO_FONT_SIZE: u32 = 24;
-                const HIT_INFO_HORIZONTAL_POSITION: f64 = 600.0;
-                const HIT_INFO_VERTICAL_POSITION: f64 = 400.0;
+                const INFO_HORIZONTAL_POSITION: f64 = 600.0;
+                const INFO_VERTICAL_POSITION: f64 = 400.0;
 
-                text::Text::new_color(
-                    WHITE_COLOR,
-                    INFO_FONT_SIZE,
-                ).draw(
-                    "HIT - press Enter",
-                    &mut glyphs,
-                    &context.draw_state,
-                    context.transform.trans(
-                        HIT_INFO_HORIZONTAL_POSITION,
-                        HIT_INFO_VERTICAL_POSITION,
-                    ),
-                    window,
-                ).unwrap();
+                const MAX_HAND_POINTS: u8 = 21;
+                if *hand_points > MAX_HAND_POINTS {
+
+                    text::Text::new_color(
+                        RED_COLOR,
+                        INFO_FONT_SIZE,
+                    ).draw(
+                        "Burst!",
+                        &mut glyphs,
+                        &context.draw_state,
+                        context.transform.trans(
+                            INFO_HORIZONTAL_POSITION,
+                            INFO_VERTICAL_POSITION,
+                        ),
+                        window,
+                    ).unwrap();
+
+                } else {
+
+                    text::Text::new_color(
+                        WHITE_COLOR,
+                        INFO_FONT_SIZE,
+                    ).draw(
+                        "HIT - press Enter",
+                        &mut glyphs,
+                        &context.draw_state,
+                        context.transform.trans(
+                            INFO_HORIZONTAL_POSITION,
+                            INFO_VERTICAL_POSITION,
+                        ),
+                        window,
+                    ).unwrap();
+                }
 
                 const PLAYER_NAME_FONT_SIZE: u32 = 16;
                 const PLAYER_NAME_HORIZONTAL_POSITION: f64 = 300.0;
