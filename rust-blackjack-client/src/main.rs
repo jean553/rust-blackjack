@@ -49,7 +49,7 @@ enum Event {
 #[derive(Serialize, Deserialize, PartialEq)]
 enum MessageAction {
     NewPlayer,
-    SendCard,
+    SendPlayerCard,
     Hit,
 }
 
@@ -103,7 +103,7 @@ impl Handler for Client {
                 .unwrap()
         ).unwrap();
 
-        if data.action == MessageAction::SendCard {
+        if data.action == MessageAction::SendPlayerCard {
 
             let mut displayed_cards = self.cards_mutex_arc.lock()
                 .unwrap();

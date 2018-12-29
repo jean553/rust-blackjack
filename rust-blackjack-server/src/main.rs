@@ -21,7 +21,7 @@ use rand::{thread_rng, Rng};
 #[derive(Serialize, Deserialize, PartialEq)]
 enum MessageAction {
     NewPlayer,
-    SendCard,
+    SendPlayerCard,
     Hit,
 }
 
@@ -111,7 +111,7 @@ impl Server {
         }
 
         let card_message = SocketMessage {
-            action: MessageAction::SendCard,
+            action: MessageAction::SendPlayerCard,
             card_index: card_index,
             cards_amount: self.cards.len() as u16,
             text: "".to_string(),
