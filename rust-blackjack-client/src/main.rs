@@ -297,8 +297,8 @@ fn main() {
                 ).unwrap();
 
                 const INFO_FONT_SIZE: u32 = 24;
-                const INFO_HORIZONTAL_POSITION: f64 = 600.0;
-                const INFO_VERTICAL_POSITION: f64 = 400.0;
+                const INFO_HORIZONTAL_POSITION: f64 = 10.0;
+                const INFO_VERTICAL_POSITION: f64 = 570.0;
 
                 const MAX_HAND_POINTS: u8 = 21;
                 if *hand_points > MAX_HAND_POINTS {
@@ -307,7 +307,7 @@ fn main() {
                         RED_COLOR,
                         INFO_FONT_SIZE,
                     ).draw(
-                        "Burst! Press Enter to try again.",
+                        "Burst! - Press Enter",
                         &mut glyphs,
                         &context.draw_state,
                         context.transform.trans(
