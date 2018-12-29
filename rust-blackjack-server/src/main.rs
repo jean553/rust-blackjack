@@ -166,6 +166,14 @@ impl Handler for Server {
 
         if data.action == MessageAction::Hit {
 
+            let player_handpoints = self.players_handpoints.get_mut(0).unwrap();
+
+            const MAX_HAND_POINTS: u8 = 21;
+            if *player_handpoints > MAX_HAND_POINTS {
+                *player_handpoints = 0;
+                self.send_card();
+            }
+
             self.send_card();
 
             println!(

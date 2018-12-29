@@ -222,7 +222,16 @@ fn main() {
             break;
         }
 
+        let mut hand_points = hand_points_arc.lock().unwrap();
+        let mut displayed_cards = cards_mutex_arc.lock().unwrap();
+
         if let Some(Button::Keyboard(Key::Return)) = event.press_args() {
+
+            const MAX_HAND_POINTS: u8 = 21;
+            if *hand_points > MAX_HAND_POINTS {
+                displayed_cards.clear();
+                *hand_points = 0;
+            }
 
             let hit_message = SocketMessage {
                 action: MessageAction::Hit,
@@ -273,8 +282,6 @@ fn main() {
                 const POINTS_HORIZONTAL_POSITION: f64 = 400.0;
                 const POINTS_VERTICAL_POSITION: f64 = 400.0;
 
-                let hand_points = hand_points_arc.lock().unwrap();
-
                 text::Text::new_color(
                     WHITE_COLOR,
                     POINTS_FONT_SIZE,
@@ -300,7 +307,7 @@ fn main() {
                         RED_COLOR,
                         INFO_FONT_SIZE,
                     ).draw(
-                        "Burst!",
+                        "Burst! Press Enter to try again.",
                         &mut glyphs,
                         &context.draw_state,
                         context.transform.trans(
@@ -365,7 +372,6 @@ fn main() {
                     window,
                 ).unwrap();
 
-                let displayed_cards = cards_mutex_arc.lock().unwrap();
                 if displayed_cards.is_empty() {
                     return;
                 }
