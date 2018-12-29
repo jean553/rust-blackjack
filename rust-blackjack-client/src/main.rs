@@ -50,6 +50,7 @@ enum Event {
 enum MessageAction {
     NewPlayer,
     SendPlayerCard,
+    SendBankCard,
     Hit,
 }
 
@@ -64,6 +65,7 @@ struct SocketMessage {
 
 struct Client {
     cards_mutex_arc: Arc<Mutex<Vec<u16>>>,
+    bank_cards_mutex_arc: Arc<Mutex<Vec<u16>>>,
     hand_points_arc: Arc<Mutex<u8>>,
     cards_amount_arc: Arc<Mutex<u16>>,
     socket_sender: Sender,
@@ -107,7 +109,6 @@ impl Handler for Client {
 
             let mut displayed_cards = self.cards_mutex_arc.lock()
                 .unwrap();
-
             displayed_cards.push(data.card_index);
 
             let mut remaining_cards_amount = self.cards_amount_arc.lock()
@@ -117,6 +118,15 @@ impl Handler for Client {
             let mut hand_points = self.hand_points_arc.lock().
                 unwrap();
             *hand_points = data.player_handpoints;
+
+            return Ok(());
+        }
+
+        if data.action == MessageAction::SendBankCard {
+
+            let mut bank_cards = self.bank_cards_mutex_arc.lock()
+                .unwrap();
+            bank_cards.push(data.card_index);
         }
 
         Ok(())
@@ -132,6 +142,7 @@ impl Handler for Client {
 fn main() {
 
     let cards_mutex_arc = Arc::new(Mutex::new(vec![]));
+    let bank_cards_mutex_arc = Arc::new(Mutex::new(vec![]));
     let hand_points_arc: Arc<Mutex<u8>> = Arc::new(Mutex::new(0));
     let remaining_cards_amount_arc: Arc<Mutex<u16>> = Arc::new(Mutex::new(0));
 
@@ -150,6 +161,7 @@ fn main() {
        when passed to the client thread below and
        still used by the main thread */
     let cards_mutex_arc_clone = cards_mutex_arc.clone();
+    let bank_cards_mutex_arc_clone = bank_cards_mutex_arc.clone();
     let hand_points_arc_clone = hand_points_arc.clone();
     let remaining_cards_amount_arc_clone = remaining_cards_amount_arc.clone();
 
@@ -161,6 +173,7 @@ fn main() {
         let _ = connect(SERVER_ADDRESS, |sender| {
             Client {
                 cards_mutex_arc: cards_mutex_arc_clone.clone(),
+                bank_cards_mutex_arc: bank_cards_mutex_arc_clone.clone(),
                 hand_points_arc: hand_points_arc_clone.clone(),
                 cards_amount_arc: remaining_cards_amount_arc_clone.clone(),
                 socket_sender: sender,
@@ -224,12 +237,14 @@ fn main() {
 
         let mut hand_points = hand_points_arc.lock().unwrap();
         let mut displayed_cards = cards_mutex_arc.lock().unwrap();
+        let mut bank_cards = bank_cards_mutex_arc.lock().unwrap();
 
         if let Some(Button::Keyboard(Key::Return)) = event.press_args() {
 
             const MAX_HAND_POINTS: u8 = 21;
             if *hand_points > MAX_HAND_POINTS {
                 displayed_cards.clear();
+                bank_cards.clear();
                 *hand_points = 0;
             }
 
@@ -383,13 +398,41 @@ fn main() {
                 let mut card_horizontal_position: f64 = CARD_HORIZONTAL_POSITION;
                 let mut card_vertical_position: f64 = CARD_VERTICAL_POSITION;
 
-                for card_index in 0..displayed_cards.len() {
+                const ONE_GAME_CARDS_AMOUNT: usize = 52;
 
-                    const ONE_GAME_CARDS_AMOUNT: usize = 52;
+                for card_index in 0..displayed_cards.len() {
 
                     image(
                         &cards_images[
                             *displayed_cards.get(card_index)
+                                .unwrap() as usize % ONE_GAME_CARDS_AMOUNT
+                        ],
+                        context.transform.trans(
+                            card_horizontal_position,
+                            card_vertical_position,
+                        ).scale(
+                            CARD_DIMENSIONS_SCALE,
+                            CARD_DIMENSIONS_SCALE
+                        ),
+                        window,
+                    );
+
+                    const CARDS_DISTANCE: f64 = 40.0;
+                    card_horizontal_position += CARDS_DISTANCE;
+                    card_vertical_position += CARDS_DISTANCE;
+                }
+
+                const BANK_CARD_HORIZONTAL_POSITION: f64 = 300.0;
+                const BANK_CARD_VERTICAL_POSITION: f64 = 100.0;
+
+                let mut card_horizontal_position: f64 = BANK_CARD_HORIZONTAL_POSITION;
+                let mut card_vertical_position: f64 = BANK_CARD_VERTICAL_POSITION;
+
+                for card_index in 0..bank_cards.len() {
+
+                    image(
+                        &cards_images[
+                            *bank_cards.get(card_index)
                                 .unwrap() as usize % ONE_GAME_CARDS_AMOUNT
                         ],
                         context.transform.trans(

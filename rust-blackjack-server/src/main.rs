@@ -22,6 +22,7 @@ use rand::{thread_rng, Rng};
 enum MessageAction {
     NewPlayer,
     SendPlayerCard,
+    SendBankCard,
     Hit,
 }
 
@@ -122,6 +123,24 @@ impl Server {
 
         self.output.send(message).unwrap();
     }
+
+    /// Send a card to the bank, and render the cards on the client side.
+    fn send_bank_card(&mut self) {
+
+        let card_index = self.cards.pop().unwrap();
+
+        let card_message = SocketMessage {
+            action: MessageAction::SendBankCard,
+            card_index: card_index,
+            cards_amount: self.cards.len() as u16,
+            text: "".to_string(),
+            player_handpoints: 0,
+        };
+
+        let message = serde_json::to_string(&card_message).unwrap();
+
+        self.output.send(message).unwrap();
+    }
 }
 
 impl Handler for Server {
@@ -145,6 +164,7 @@ impl Handler for Server {
 
         self.send_card();
         self.send_card();
+        self.send_bank_card();
 
         Ok(())
     }
@@ -166,15 +186,20 @@ impl Handler for Server {
 
         if data.action == MessageAction::Hit {
 
-            let player_handpoints = self.players_handpoints.get_mut(0).unwrap();
+            let player_handpoints = *self.players_handpoints.get(0).unwrap();
 
             const MAX_HAND_POINTS: u8 = 21;
-            if *player_handpoints > MAX_HAND_POINTS {
+            if player_handpoints > MAX_HAND_POINTS {
+                let player_handpoints = self.players_handpoints.get_mut(0).unwrap();
                 *player_handpoints = 0;
                 self.send_card();
             }
 
             self.send_card();
+
+            if player_handpoints > MAX_HAND_POINTS {
+                self.send_bank_card();
+            }
 
             println!(
                 "Player hand points: {}",
