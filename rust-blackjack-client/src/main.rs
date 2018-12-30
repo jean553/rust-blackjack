@@ -1,4 +1,5 @@
 #![deny(warnings)]
+#![feature(uniform_paths)]
 
 extern crate piston_window;
 extern crate ws;
@@ -7,6 +8,10 @@ extern crate serde_json;
 #[macro_use] extern crate serde_derive;
 
 mod cards;
+mod event;
+mod client;
+mod message_action;
+mod socket_message;
 
 use piston_window::{
     clear,
@@ -22,15 +27,7 @@ use piston_window::{
     TextureSettings,
 };
 
-use ws::{
-    connect,
-    Handler,
-    Result,
-    Handshake,
-    Message,
-    Sender,
-    CloseCode,
-};
+use ws::connect;
 
 use std::io::stdin;
 use std::thread;
@@ -40,104 +37,10 @@ use std::sync::{
 };
 use std::sync::mpsc;
 
-#[derive(PartialEq)]
-enum Event {
-    Connect(Sender),
-    Disconnect,
-}
-
-#[derive(Serialize, Deserialize, PartialEq)]
-enum MessageAction {
-    NewPlayer,
-    SendPlayerCard,
-    SendBankCard,
-    Hit,
-}
-
-#[derive(Serialize, Deserialize)]
-struct SocketMessage {
-    action: MessageAction,
-    card_index: u16,
-    cards_amount: u16,
-    text: String,
-    player_handpoints: u8,
-}
-
-struct Client {
-    cards_mutex_arc: Arc<Mutex<Vec<u16>>>,
-    bank_cards_mutex_arc: Arc<Mutex<Vec<u16>>>,
-    hand_points_arc: Arc<Mutex<u8>>,
-    cards_amount_arc: Arc<Mutex<u16>>,
-    socket_sender: Sender,
-    channel_sender: mpsc::Sender<Event>,
-}
-
-impl Handler for Client {
-
-    /// Called when a successful connexion has been established with the server,
-    /// sends a successful connection event to the main thread through the channel.
-    fn on_open(
-        &mut self,
-        _: Handshake
-    ) -> Result<()> {
-
-        println!("Connected.");
-
-        self.channel_sender.send(
-            Event::Connect(self.socket_sender.clone())
-        ).unwrap();
-
-        Ok(())
-    }
-
-    /// Called when a message is received from the server.
-    ///
-    /// # Args:
-    ///
-    /// `message` - the received message
-    fn on_message(
-        &mut self,
-        message: Message,
-    ) -> Result<()> {
-
-        let data: SocketMessage = serde_json::from_str(
-            &message.into_text()
-                .unwrap()
-        ).unwrap();
-
-        if data.action == MessageAction::SendPlayerCard {
-
-            let mut displayed_cards = self.cards_mutex_arc.lock()
-                .unwrap();
-            displayed_cards.push(data.card_index);
-
-            let mut remaining_cards_amount = self.cards_amount_arc.lock()
-                .unwrap();
-            *remaining_cards_amount = data.cards_amount;
-
-            let mut hand_points = self.hand_points_arc.lock().
-                unwrap();
-            *hand_points = data.player_handpoints;
-
-            return Ok(());
-        }
-
-        if data.action == MessageAction::SendBankCard {
-
-            let mut bank_cards = self.bank_cards_mutex_arc.lock()
-                .unwrap();
-            bank_cards.push(data.card_index);
-        }
-
-        Ok(())
-    }
-
-    /// Called when the server closes the connection. Sends a message to the main thread in order to stop the program.
-    fn on_close(&mut self, _: CloseCode, _: &str) {
-
-        self.channel_sender.send(Event::Disconnect).unwrap();
-    }
-}
+use client::Client;
+use event::Event;
+use message_action::MessageAction;
+use socket_message::SocketMessage;
 
 fn main() {
 
