@@ -21,6 +21,7 @@ pub struct Client {
     pub cards_mutex_arc: Arc<Mutex<Vec<u16>>>,
     pub bank_cards_mutex_arc: Arc<Mutex<Vec<u16>>>,
     pub hand_points_arc: Arc<Mutex<u8>>,
+    pub bank_points_arc: Arc<Mutex<u8>>,
     pub cards_amount_arc: Arc<Mutex<u16>>,
     pub socket_sender: Sender,
     pub channel_sender: mpsc::Sender<Event>,
@@ -81,6 +82,10 @@ impl Handler for Client {
             let mut bank_cards = self.bank_cards_mutex_arc.lock()
                 .unwrap();
             bank_cards.push(data.card_index);
+
+            let mut bank_points = self.bank_points_arc.lock()
+                .unwrap();
+            *bank_points = data.player_handpoints;
         }
 
         Ok(())

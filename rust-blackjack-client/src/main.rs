@@ -47,6 +47,7 @@ fn main() {
     let cards_mutex_arc = Arc::new(Mutex::new(vec![]));
     let bank_cards_mutex_arc = Arc::new(Mutex::new(vec![]));
     let hand_points_arc: Arc<Mutex<u8>> = Arc::new(Mutex::new(0));
+    let bank_points_arc: Arc<Mutex<u8>> = Arc::new(Mutex::new(0));
     let remaining_cards_amount_arc: Arc<Mutex<u16>> = Arc::new(Mutex::new(0));
 
     println!("Player name: ");
@@ -66,6 +67,7 @@ fn main() {
     let cards_mutex_arc_clone = cards_mutex_arc.clone();
     let bank_cards_mutex_arc_clone = bank_cards_mutex_arc.clone();
     let hand_points_arc_clone = hand_points_arc.clone();
+    let bank_points_arc_clone = bank_points_arc.clone();
     let remaining_cards_amount_arc_clone = remaining_cards_amount_arc.clone();
 
     /* the socket handling is performed into a dedicated thread,
@@ -78,6 +80,7 @@ fn main() {
                 cards_mutex_arc: cards_mutex_arc_clone.clone(),
                 bank_cards_mutex_arc: bank_cards_mutex_arc_clone.clone(),
                 hand_points_arc: hand_points_arc_clone.clone(),
+                bank_points_arc: bank_points_arc_clone.clone(),
                 cards_amount_arc: remaining_cards_amount_arc_clone.clone(),
                 socket_sender: sender,
                 channel_sender: channel_sender.clone(),
@@ -138,7 +141,9 @@ fn main() {
             break;
         }
 
-        let mut hand_points = hand_points_arc.lock().unwrap();
+        let hand_points = hand_points_arc.lock().unwrap();
+        let bank_points = bank_points_arc.lock().unwrap();
+
         let mut displayed_cards = cards_mutex_arc.lock().unwrap();
         let mut bank_cards = bank_cards_mutex_arc.lock().unwrap();
 
@@ -148,7 +153,6 @@ fn main() {
             if *hand_points > MAX_HAND_POINTS {
                 displayed_cards.clear();
                 bank_cards.clear();
-                *hand_points = 0;
             }
 
             let hit_message = SocketMessage {
@@ -210,6 +214,23 @@ fn main() {
                     context.transform.trans(
                         POINTS_HORIZONTAL_POSITION,
                         POINTS_VERTICAL_POSITION,
+                    ),
+                    window,
+                ).unwrap();
+
+                const BANK_POINTS_HORIZONTAL_POSITION: f64 = 400.0;
+                const BANK_POINTS_VERTICAL_POSITION: f64 = 250.0;
+
+                text::Text::new_color(
+                    WHITE_COLOR,
+                    POINTS_FONT_SIZE,
+                ).draw(
+                    &*bank_points.to_string(),
+                    &mut glyphs,
+                    &context.draw_state,
+                    context.transform.trans(
+                        BANK_POINTS_HORIZONTAL_POSITION,
+                        BANK_POINTS_VERTICAL_POSITION,
                     ),
                     window,
                 ).unwrap();
