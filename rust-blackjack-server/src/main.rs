@@ -45,6 +45,50 @@ struct SocketMessage {
     player_handpoints: u8,
 }
 
+/// Return card points according to a given index.
+///
+/// Args:
+///
+/// `card_index` - the current card index,
+/// `player_handpoints` - the current player handpoints amount,
+fn get_card_points(
+    card_index: u8,
+    player_handpoints: u8,
+) -> u8 {
+
+    const TEN_POINTS_CARDS_START_INDEX: u8 = 32;
+    const ACE_CARDS_START_INDEX: u8 = 47;
+
+    if card_index >= TEN_POINTS_CARDS_START_INDEX &&
+        card_index < ACE_CARDS_START_INDEX {
+
+        const TEN_VALUE_CARDS_POINTS_AMOUNT: u8 = 10;
+        return TEN_VALUE_CARDS_POINTS_AMOUNT;
+    }
+    else if card_index >= ACE_CARDS_START_INDEX {
+
+        const ACE_CARDS_FIRST_POINTS_AMOUNT: u8 = 1;
+        const ACE_CARDS_SECOND_POINTS_AMOUNT: u8 = 11;
+        const MAX_HAND_POINTS_FOR_ACE_CARDS_SECOND_POINTS_AMOUNT: u8 = 11;
+
+        /* FIXME: the player should also be able to
+           select an ace value in some situations */
+
+        if player_handpoints >= MAX_HAND_POINTS_FOR_ACE_CARDS_SECOND_POINTS_AMOUNT {
+            return ACE_CARDS_FIRST_POINTS_AMOUNT;
+        }
+
+        return ACE_CARDS_SECOND_POINTS_AMOUNT;
+
+    } else {
+
+        const CARDS_WITH_SAME_VALUE_BY_COLOR: u8 = 4;
+        const MINIMUM_CARD_VALUE: u8 = 2;
+        return card_index / CARDS_WITH_SAME_VALUE_BY_COLOR
+            + MINIMUM_CARD_VALUE;
+    }
+}
+
 impl Server {
 
     /// Creates a new server.
@@ -76,40 +120,16 @@ impl Server {
         const ONE_SET_CARDS_AMOUNT: u16 = 52;
         let one_set_card_index = (card_index % ONE_SET_CARDS_AMOUNT) as u8;
 
-        const TEN_POINTS_CARDS_START_INDEX: u8 = 32;
-        const ACE_CARDS_START_INDEX: u8 = 47;
-
         /* FIXME: we handle only handpoints of the first player for now,
            of course we should be able to handle all the playing players */
         let player_handpoints = self.players_handpoints.get_mut(0).unwrap();
 
-        if one_set_card_index >= TEN_POINTS_CARDS_START_INDEX &&
-            one_set_card_index < ACE_CARDS_START_INDEX {
+        let drawn_card_points = get_card_points(
+            one_set_card_index,
+            *player_handpoints,
+        );
 
-            const TEN_VALUE_CARDS_POINTS_AMOUNT: u8 = 10;
-            *player_handpoints += TEN_VALUE_CARDS_POINTS_AMOUNT;
-        }
-        else if one_set_card_index >= ACE_CARDS_START_INDEX {
-
-            const ACE_CARDS_FIRST_POINTS_AMOUNT: u8 = 1;
-            const ACE_CARDS_SECOND_POINTS_AMOUNT: u8 = 11;
-            const MAX_HAND_POINTS_FOR_ACE_CARDS_SECOND_POINTS_AMOUNT: u8 = 11;
-
-            /* FIXME: the player should also be able to
-               select an ace value in some situations */
-
-            if *player_handpoints >= MAX_HAND_POINTS_FOR_ACE_CARDS_SECOND_POINTS_AMOUNT {
-                *player_handpoints += ACE_CARDS_FIRST_POINTS_AMOUNT;
-            }
-
-            *player_handpoints += ACE_CARDS_SECOND_POINTS_AMOUNT;
-        } else {
-
-            const CARDS_WITH_SAME_VALUE_BY_COLOR: u8 = 4;
-            const MINIMUM_CARD_VALUE: u8 = 2;
-            *player_handpoints += one_set_card_index / CARDS_WITH_SAME_VALUE_BY_COLOR
-                + MINIMUM_CARD_VALUE;
-        }
+        *player_handpoints += drawn_card_points;
 
         let card_message = SocketMessage {
             action: MessageAction::SendPlayerCard,
@@ -129,12 +149,15 @@ impl Server {
 
         let card_index = self.cards.pop().unwrap();
 
+        const ONE_SET_CARDS_AMOUNT: u16 = 52;
+        let one_set_card_index = (card_index % ONE_SET_CARDS_AMOUNT) as u8;
+
         let card_message = SocketMessage {
             action: MessageAction::SendBankCard,
             card_index: card_index,
             cards_amount: self.cards.len() as u16,
             text: "".to_string(),
-            player_handpoints: 0,
+            player_handpoints: get_card_points(one_set_card_index, 0),
         };
 
         let message = serde_json::to_string(&card_message).unwrap();
