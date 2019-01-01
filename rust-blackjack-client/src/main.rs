@@ -12,10 +12,10 @@ mod event;
 mod client;
 mod message_action;
 mod socket_message;
+mod display;
 
 use piston_window::{
     clear,
-    image,
     text,
     PistonWindow,
     WindowSettings,
@@ -41,6 +41,7 @@ use client::Client;
 use event::Event;
 use message_action::MessageAction;
 use socket_message::SocketMessage;
+use display::display_cards;
 
 fn main() {
 
@@ -144,14 +145,14 @@ fn main() {
         let hand_points = hand_points_arc.lock().unwrap();
         let bank_points = bank_points_arc.lock().unwrap();
 
-        let mut displayed_cards = cards_mutex_arc.lock().unwrap();
+        let mut player_cards = cards_mutex_arc.lock().unwrap();
         let mut bank_cards = bank_cards_mutex_arc.lock().unwrap();
 
         if let Some(Button::Keyboard(Key::Return)) = event.press_args() {
 
             const MAX_HAND_POINTS: u8 = 21;
             if *hand_points > MAX_HAND_POINTS {
-                displayed_cards.clear();
+                player_cards.clear();
                 bank_cards.clear();
             }
 
@@ -170,7 +171,7 @@ fn main() {
 
         window.draw_2d(
             &event,
-            |context, window| {
+            |context, mut window| {
 
                 const GREEN_COLOR: [f32; 4] = [0.2, 0.5, 0.3, 1.0];
 
@@ -311,68 +312,33 @@ fn main() {
                     window,
                 ).unwrap();
 
-                if displayed_cards.is_empty() {
+                if player_cards.is_empty() {
                     return;
                 }
 
-                const CARD_HORIZONTAL_POSITION: f64 = 300.0;
-                const CARD_VERTICAL_POSITION: f64 = 400.0;
-                const CARD_DIMENSIONS_SCALE: f64 = 0.5;
+                const PLAYER_CARD_HORIZONTAL_POSITION: f64 = 300.0;
+                const PLAYER_CARD_VERTICAL_POSITION: f64 = 400.0;
 
-                let mut card_horizontal_position: f64 = CARD_HORIZONTAL_POSITION;
-                let mut card_vertical_position: f64 = CARD_VERTICAL_POSITION;
-
-                const ONE_GAME_CARDS_AMOUNT: usize = 52;
-
-                for card_index in 0..displayed_cards.len() {
-
-                    image(
-                        &cards_images[
-                            *displayed_cards.get(card_index)
-                                .unwrap() as usize % ONE_GAME_CARDS_AMOUNT
-                        ],
-                        context.transform.trans(
-                            card_horizontal_position,
-                            card_vertical_position,
-                        ).scale(
-                            CARD_DIMENSIONS_SCALE,
-                            CARD_DIMENSIONS_SCALE
-                        ),
-                        window,
-                    );
-
-                    const CARDS_DISTANCE: f64 = 40.0;
-                    card_horizontal_position += CARDS_DISTANCE;
-                    card_vertical_position += CARDS_DISTANCE;
-                }
+                display_cards(
+                    &mut window,
+                    &context,
+                    &cards_images,
+                    &player_cards,
+                    PLAYER_CARD_HORIZONTAL_POSITION,
+                    PLAYER_CARD_VERTICAL_POSITION,
+                );
 
                 const BANK_CARD_HORIZONTAL_POSITION: f64 = 300.0;
                 const BANK_CARD_VERTICAL_POSITION: f64 = 100.0;
 
-                let mut card_horizontal_position: f64 = BANK_CARD_HORIZONTAL_POSITION;
-                let mut card_vertical_position: f64 = BANK_CARD_VERTICAL_POSITION;
-
-                for card_index in 0..bank_cards.len() {
-
-                    image(
-                        &cards_images[
-                            *bank_cards.get(card_index)
-                                .unwrap() as usize % ONE_GAME_CARDS_AMOUNT
-                        ],
-                        context.transform.trans(
-                            card_horizontal_position,
-                            card_vertical_position,
-                        ).scale(
-                            CARD_DIMENSIONS_SCALE,
-                            CARD_DIMENSIONS_SCALE
-                        ),
-                        window,
-                    );
-
-                    const CARDS_DISTANCE: f64 = 40.0;
-                    card_horizontal_position += CARDS_DISTANCE;
-                    card_vertical_position += CARDS_DISTANCE;
-                }
+                display_cards(
+                    &mut window,
+                    &context,
+                    &cards_images,
+                    &bank_cards,
+                    BANK_CARD_HORIZONTAL_POSITION,
+                    BANK_CARD_VERTICAL_POSITION,
+                );
             }
         );
     }
