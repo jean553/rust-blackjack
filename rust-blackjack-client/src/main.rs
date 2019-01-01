@@ -44,6 +44,7 @@ use socket_message::SocketMessage;
 use display::{
     display_cards,
     display_remaining_cards_amount,
+    display_player_name,
 };
 
 fn main() {
@@ -277,23 +278,12 @@ fn main() {
                     ).unwrap();
                 }
 
-                const PLAYER_NAME_FONT_SIZE: u32 = 16;
-                const PLAYER_NAME_HORIZONTAL_POSITION: f64 = 300.0;
-                const PLAYER_NAME_VERTICAL_POSITION: f64 = 380.0;
-
-                text::Text::new_color(
-                    WHITE_COLOR,
-                    PLAYER_NAME_FONT_SIZE,
-                ).draw(
-                    &player_name,
-                    &mut glyphs,
-                    &context.draw_state,
-                    context.transform.trans(
-                        PLAYER_NAME_HORIZONTAL_POSITION,
-                        PLAYER_NAME_VERTICAL_POSITION,
-                    ),
+                display_player_name(
                     window,
-                ).unwrap();
+                    &context,
+                    &mut glyphs,
+                    &player_name,
+                );
 
                 display_remaining_cards_amount(
                     window,

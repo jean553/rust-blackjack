@@ -13,6 +13,8 @@ use std::sync::{
     Arc,
 };
 
+const WHITE_COLOR: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
+
 /// Displays the given cards at the given position.
 ///
 /// # Args:
@@ -73,7 +75,6 @@ pub fn display_remaining_cards_amount(
     const REMAINING_CARDS_AMOUNT_FONT_SIZE: u32 = 16;
     const REMAINING_CARDS_AMOUNT_HORIZONTAL_POSITION: f64 = 700.0;
     const REMAINING_CARDS_AMOUNT_VERTICAL_POSITION: f64 = 50.0;
-    const WHITE_COLOR: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 
     let amount = amount.lock().unwrap();
 
@@ -87,6 +88,40 @@ pub fn display_remaining_cards_amount(
         context.transform.trans(
             REMAINING_CARDS_AMOUNT_HORIZONTAL_POSITION,
             REMAINING_CARDS_AMOUNT_VERTICAL_POSITION,
+        ),
+        window,
+    ).unwrap();
+}
+
+/// Displays the current player name.
+///
+/// # Args:
+///
+/// `window` - the window where to draw
+/// `context` - the rendering loop context
+/// `glyphs` - the text rendering Piston glyph
+/// `player_name` - the name of the player
+pub fn display_player_name(
+    window: &mut G2d,
+    context: &Context,
+    glyphs: &mut Glyphs,
+    player_name: &str,
+) {
+
+    const PLAYER_NAME_FONT_SIZE: u32 = 16;
+    const PLAYER_NAME_HORIZONTAL_POSITION: f64 = 300.0;
+    const PLAYER_NAME_VERTICAL_POSITION: f64 = 380.0;
+
+    text::Text::new_color(
+        WHITE_COLOR,
+        PLAYER_NAME_FONT_SIZE,
+    ).draw(
+        player_name,
+        glyphs,
+        &context.draw_state,
+        context.transform.trans(
+            PLAYER_NAME_HORIZONTAL_POSITION,
+            PLAYER_NAME_VERTICAL_POSITION,
         ),
         window,
     ).unwrap();
