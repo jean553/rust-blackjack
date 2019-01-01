@@ -36,9 +36,9 @@ fn load_one_card_texture(
 /// # Args:
 ///
 /// `window` - piston window reference for textures loading
-pub fn load_all_cards_textures(window: &mut PistonWindow) -> Vec<G2dTexture> {
+pub fn load_all_cards_textures(window: &mut PistonWindow) -> [G2dTexture; 52] {
 
-    vec![
+    [
         load_one_card_texture(window, "2_of_clubs"),
         load_one_card_texture(window, "2_of_diamonds"),
         load_one_card_texture(window, "2_of_hearts"),

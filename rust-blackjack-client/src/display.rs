@@ -19,7 +19,7 @@ use piston_window::{
 pub fn display_cards(
     window: &mut G2d,
     context: &Context,
-    all_cards_images: &Vec<G2dTexture>,
+    all_cards_images: &[G2dTexture],
     cards: &Vec<u16>,
     horizontal_position: f64,
     vertical_position: f64,
