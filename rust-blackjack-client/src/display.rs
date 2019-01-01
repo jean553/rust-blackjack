@@ -4,6 +4,13 @@ use piston_window::{
     G2dTexture,
     G2d,
     Transformed,
+    Glyphs,
+    text,
+};
+
+use std::sync::{
+    Mutex,
+    Arc,
 };
 
 /// Displays the given cards at the given position.
@@ -46,4 +53,41 @@ pub fn display_cards(
             window,
         );
     }
+}
+
+/// Displays the remaining cards amount according to the given mutex.
+///
+/// # Args:
+///
+/// `window` - the window where to draw
+/// `context` - the rendering loop context
+/// `glyphs` - the text rendering Piston glyph
+/// `amount` - the amount to display
+pub fn display_remaining_cards_amount(
+    window: &mut G2d,
+    context: &Context,
+    glyphs: &mut Glyphs,
+    amount: &Arc<Mutex<u16>>,
+) {
+
+    const REMAINING_CARDS_AMOUNT_FONT_SIZE: u32 = 16;
+    const REMAINING_CARDS_AMOUNT_HORIZONTAL_POSITION: f64 = 700.0;
+    const REMAINING_CARDS_AMOUNT_VERTICAL_POSITION: f64 = 50.0;
+    const WHITE_COLOR: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
+
+    let amount = amount.lock().unwrap();
+
+    text::Text::new_color(
+        WHITE_COLOR,
+        REMAINING_CARDS_AMOUNT_FONT_SIZE,
+    ).draw(
+        &amount.to_string(),
+        glyphs,
+        &context.draw_state,
+        context.transform.trans(
+            REMAINING_CARDS_AMOUNT_HORIZONTAL_POSITION,
+            REMAINING_CARDS_AMOUNT_VERTICAL_POSITION,
+        ),
+        window,
+    ).unwrap();
 }
