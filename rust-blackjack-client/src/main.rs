@@ -41,7 +41,10 @@ use client::Client;
 use event::Event;
 use message_action::MessageAction;
 use socket_message::SocketMessage;
-use display::display_cards;
+use display::{
+    display_cards,
+    display_remaining_cards_amount,
+};
 
 fn main() {
 
@@ -292,25 +295,12 @@ fn main() {
                     window,
                 ).unwrap();
 
-                const REMAINING_CARDS_AMOUNT_FONT_SIZE: u32 = 16;
-                const REMAINING_CARDS_AMOUNT_HORIZONTAL_POSITION: f64 = 700.0;
-                const REMAINING_CARDS_AMOUNT_VERTICAL_POSITION: f64 = 50.0;
-
-                let remaining_cards_amount = remaining_cards_amount_arc.lock().unwrap();
-
-                text::Text::new_color(
-                    WHITE_COLOR,
-                    REMAINING_CARDS_AMOUNT_FONT_SIZE,
-                ).draw(
-                    &*remaining_cards_amount.to_string(),
-                    &mut glyphs,
-                    &context.draw_state,
-                    context.transform.trans(
-                        REMAINING_CARDS_AMOUNT_HORIZONTAL_POSITION,
-                        REMAINING_CARDS_AMOUNT_VERTICAL_POSITION,
-                    ),
+                display_remaining_cards_amount(
                     window,
-                ).unwrap();
+                    &context,
+                    &mut glyphs,
+                    &remaining_cards_amount_arc,
+                );
 
                 if player_cards.is_empty() {
                     return;
