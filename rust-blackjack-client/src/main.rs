@@ -45,6 +45,7 @@ use display::{
     display_cards,
     display_remaining_cards_amount,
     display_player_name,
+    display_information,
 };
 
 fn main() {
@@ -185,7 +186,6 @@ fn main() {
                 );
 
                 const WHITE_COLOR: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
-                const RED_COLOR: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
 
                 const TITLE_FONT_SIZE: u32 = 64;
                 const TITLE_HORIZONTAL_POSITION: f64 = 275.0;
@@ -240,43 +240,12 @@ fn main() {
                     window,
                 ).unwrap();
 
-                const INFO_FONT_SIZE: u32 = 24;
-                const INFO_HORIZONTAL_POSITION: f64 = 10.0;
-                const INFO_VERTICAL_POSITION: f64 = 570.0;
-
-                const MAX_HAND_POINTS: u8 = 21;
-                if *hand_points > MAX_HAND_POINTS {
-
-                    text::Text::new_color(
-                        RED_COLOR,
-                        INFO_FONT_SIZE,
-                    ).draw(
-                        "Burst! - Press Enter",
-                        &mut glyphs,
-                        &context.draw_state,
-                        context.transform.trans(
-                            INFO_HORIZONTAL_POSITION,
-                            INFO_VERTICAL_POSITION,
-                        ),
-                        window,
-                    ).unwrap();
-
-                } else {
-
-                    text::Text::new_color(
-                        WHITE_COLOR,
-                        INFO_FONT_SIZE,
-                    ).draw(
-                        "HIT - press Enter",
-                        &mut glyphs,
-                        &context.draw_state,
-                        context.transform.trans(
-                            INFO_HORIZONTAL_POSITION,
-                            INFO_VERTICAL_POSITION,
-                        ),
-                        window,
-                    ).unwrap();
-                }
+                display_information(
+                    window,
+                    &context,
+                    &mut glyphs,
+                    *hand_points,
+                );
 
                 display_player_name(
                     window,
