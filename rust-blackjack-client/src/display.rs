@@ -126,3 +126,59 @@ pub fn display_player_name(
         window,
     ).unwrap();
 }
+
+/// Displays the current player information about his possible actions.
+///
+/// # Args:
+///
+/// `window` - the window where to draw
+/// `context` - the rendering loop context
+/// `glyphs` - the text rendering Piston glyph
+/// `hand_points` - the amount of the player hand points
+pub fn display_information(
+    window: &mut G2d,
+    context: &Context,
+    glyphs: &mut Glyphs,
+    hand_points: u8,
+) {
+
+    const RED_COLOR: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
+
+    const INFO_FONT_SIZE: u32 = 24;
+    const INFO_HORIZONTAL_POSITION: f64 = 10.0;
+    const INFO_VERTICAL_POSITION: f64 = 570.0;
+
+    const MAX_HAND_POINTS: u8 = 21;
+    if hand_points > MAX_HAND_POINTS {
+
+        text::Text::new_color(
+            RED_COLOR,
+            INFO_FONT_SIZE,
+        ).draw(
+            "Burst! - Press Enter",
+            glyphs,
+            &context.draw_state,
+            context.transform.trans(
+                INFO_HORIZONTAL_POSITION,
+                INFO_VERTICAL_POSITION,
+            ),
+            window,
+        ).unwrap();
+
+        return;
+    }
+
+    text::Text::new_color(
+        WHITE_COLOR,
+        INFO_FONT_SIZE,
+    ).draw(
+        "HIT - press Enter",
+        glyphs,
+        &context.draw_state,
+        context.transform.trans(
+            INFO_HORIZONTAL_POSITION,
+            INFO_VERTICAL_POSITION,
+        ),
+        window,
+    ).unwrap();
+}
