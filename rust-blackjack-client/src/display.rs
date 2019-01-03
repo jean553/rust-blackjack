@@ -183,7 +183,14 @@ pub fn display_information(
     ).unwrap();
 }
 
-/// TODO
+/// Displays the current bank points amount.
+///
+/// # Args:
+///
+/// `window` - the window where to draw
+/// `context` - the rendering loop context
+/// `glyphs` - the text rendering Piston glyph
+/// `bank_points` - the bank points amount
 pub fn display_bank_points(
     window: &mut G2d,
     context: &Context,
