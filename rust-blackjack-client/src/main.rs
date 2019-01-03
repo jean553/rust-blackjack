@@ -46,6 +46,7 @@ use display::{
     display_remaining_cards_amount,
     display_player_name,
     display_information,
+    display_bank_points,
 };
 
 fn main() {
@@ -148,7 +149,6 @@ fn main() {
         }
 
         let hand_points = hand_points_arc.lock().unwrap();
-        let bank_points = bank_points_arc.lock().unwrap();
 
         let mut player_cards = cards_mutex_arc.lock().unwrap();
         let mut bank_cards = bank_cards_mutex_arc.lock().unwrap();
@@ -223,22 +223,12 @@ fn main() {
                     window,
                 ).unwrap();
 
-                const BANK_POINTS_HORIZONTAL_POSITION: f64 = 400.0;
-                const BANK_POINTS_VERTICAL_POSITION: f64 = 250.0;
-
-                text::Text::new_color(
-                    WHITE_COLOR,
-                    POINTS_FONT_SIZE,
-                ).draw(
-                    &*bank_points.to_string(),
-                    &mut glyphs,
-                    &context.draw_state,
-                    context.transform.trans(
-                        BANK_POINTS_HORIZONTAL_POSITION,
-                        BANK_POINTS_VERTICAL_POSITION,
-                    ),
+                display_bank_points(
                     window,
-                ).unwrap();
+                    &context,
+                    &mut glyphs,
+                    &bank_points_arc,
+                );
 
                 display_information(
                     window,
