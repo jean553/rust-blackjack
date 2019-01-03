@@ -182,3 +182,31 @@ pub fn display_information(
         window,
     ).unwrap();
 }
+
+/// TODO
+pub fn display_bank_points(
+    window: &mut G2d,
+    context: &Context,
+    glyphs: &mut Glyphs,
+    bank_points: &Arc<Mutex<u8>>,
+) {
+    const BANK_POINTS_HORIZONTAL_POSITION: f64 = 400.0;
+    const BANK_POINTS_VERTICAL_POSITION: f64 = 250.0;
+    const POINTS_FONT_SIZE: u32 = 32;
+
+    let bank_points = bank_points.lock().unwrap();
+
+    text::Text::new_color(
+        WHITE_COLOR,
+        POINTS_FONT_SIZE,
+    ).draw(
+        &*bank_points.to_string(),
+        glyphs,
+        &context.draw_state,
+        context.transform.trans(
+            BANK_POINTS_HORIZONTAL_POSITION,
+            BANK_POINTS_VERTICAL_POSITION,
+        ),
+        window,
+    ).unwrap();
+}
