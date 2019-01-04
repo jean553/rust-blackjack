@@ -47,6 +47,7 @@ use display::{
     display_player_name,
     display_information,
     display_bank_points,
+    display_hand_points,
 };
 
 fn main() {
@@ -148,12 +149,12 @@ fn main() {
             break;
         }
 
-        let hand_points = hand_points_arc.lock().unwrap();
-
         let mut player_cards = cards_mutex_arc.lock().unwrap();
         let mut bank_cards = bank_cards_mutex_arc.lock().unwrap();
 
         if let Some(Button::Keyboard(Key::Return)) = event.press_args() {
+
+            let hand_points = hand_points_arc.lock().unwrap();
 
             const MAX_HAND_POINTS: u8 = 21;
             if *hand_points > MAX_HAND_POINTS {
@@ -205,23 +206,12 @@ fn main() {
                     window,
                 ).unwrap();
 
-                const POINTS_FONT_SIZE: u32 = 32;
-                const POINTS_HORIZONTAL_POSITION: f64 = 400.0;
-                const POINTS_VERTICAL_POSITION: f64 = 400.0;
-
-                text::Text::new_color(
-                    WHITE_COLOR,
-                    POINTS_FONT_SIZE,
-                ).draw(
-                    &*hand_points.to_string(),
-                    &mut glyphs,
-                    &context.draw_state,
-                    context.transform.trans(
-                        POINTS_HORIZONTAL_POSITION,
-                        POINTS_VERTICAL_POSITION,
-                    ),
+                display_hand_points(
                     window,
-                ).unwrap();
+                    &context,
+                    &mut glyphs,
+                    &hand_points_arc,
+                );
 
                 display_bank_points(
                     window,
@@ -234,7 +224,7 @@ fn main() {
                     window,
                     &context,
                     &mut glyphs,
-                    *hand_points,
+                    &hand_points_arc,
                 );
 
                 display_player_name(
