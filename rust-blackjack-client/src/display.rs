@@ -139,7 +139,7 @@ pub fn display_information(
     window: &mut G2d,
     context: &Context,
     glyphs: &mut Glyphs,
-    hand_points: u8,
+    hand_points: &Arc<Mutex<u8>>,
 ) {
 
     const RED_COLOR: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
@@ -149,7 +149,10 @@ pub fn display_information(
     const INFO_VERTICAL_POSITION: f64 = 570.0;
 
     const MAX_HAND_POINTS: u8 = 21;
-    if hand_points > MAX_HAND_POINTS {
+
+    let hand_points = hand_points.lock().unwrap();
+
+    if *hand_points > MAX_HAND_POINTS {
 
         text::Text::new_color(
             RED_COLOR,
@@ -213,6 +216,41 @@ pub fn display_bank_points(
         context.transform.trans(
             BANK_POINTS_HORIZONTAL_POSITION,
             BANK_POINTS_VERTICAL_POSITION,
+        ),
+        window,
+    ).unwrap();
+}
+
+/// Displays the current hand points amount.
+///
+/// # Args:
+///
+/// `window` - the window where to draw
+/// `context` - the rendering loop context
+/// `glyphs` - the text rendering Piston glyph
+/// `hand_points` - the hand points amount
+pub fn display_hand_points(
+    window: &mut G2d,
+    context: &Context,
+    glyphs: &mut Glyphs,
+    hand_points: &Arc<Mutex<u8>>,
+) {
+    const POINTS_FONT_SIZE: u32 = 32;
+    const POINTS_HORIZONTAL_POSITION: f64 = 400.0;
+    const POINTS_VERTICAL_POSITION: f64 = 400.0;
+
+    let hand_points = hand_points.lock().unwrap();
+
+    text::Text::new_color(
+        WHITE_COLOR,
+        POINTS_FONT_SIZE,
+    ).draw(
+        &*hand_points.to_string(),
+        glyphs,
+        &context.draw_state,
+        context.transform.trans(
+            POINTS_HORIZONTAL_POSITION,
+            POINTS_VERTICAL_POSITION,
         ),
         window,
     ).unwrap();
