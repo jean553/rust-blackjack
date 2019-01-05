@@ -255,3 +255,34 @@ pub fn display_hand_points(
         window,
     ).unwrap();
 }
+
+/// Displays the main title.
+///
+/// # Args:
+///
+/// `window` - the window where to draw
+/// `context` - the rendering loop context
+/// `glyphs` - the text rendering Piston glyph
+pub fn display_title(
+    window: &mut G2d,
+    context: &Context,
+    glyphs: &mut Glyphs,
+) {
+    const TITLE_FONT_SIZE: u32 = 64;
+    const TITLE_HORIZONTAL_POSITION: f64 = 275.0;
+    const TITLE_VERTICAL_POSITION: f64 = 80.0;
+
+    text::Text::new_color(
+        WHITE_COLOR,
+        TITLE_FONT_SIZE,
+    ).draw(
+        "Blackjack",
+        glyphs,
+        &context.draw_state,
+        context.transform.trans(
+            TITLE_HORIZONTAL_POSITION,
+            TITLE_VERTICAL_POSITION,
+        ),
+        window,
+    ).unwrap();
+}
