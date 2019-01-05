@@ -51,7 +51,7 @@ use display::{
 
 fn main() {
 
-    let cards_mutex_arc = Arc::new(Mutex::new(vec![]));
+    let player_cards_mutex_arc = Arc::new(Mutex::new(vec![]));
     let bank_cards_mutex_arc = Arc::new(Mutex::new(vec![]));
     let hand_points_arc: Arc<Mutex<u8>> = Arc::new(Mutex::new(0));
     let bank_points_arc: Arc<Mutex<u8>> = Arc::new(Mutex::new(0));
@@ -71,7 +71,7 @@ fn main() {
        have to be copied once here as they are moved
        when passed to the client thread below and
        still used by the main thread */
-    let cards_mutex_arc_clone = cards_mutex_arc.clone();
+    let player_cards_mutex_arc_clone = player_cards_mutex_arc.clone();
     let bank_cards_mutex_arc_clone = bank_cards_mutex_arc.clone();
     let hand_points_arc_clone = hand_points_arc.clone();
     let bank_points_arc_clone = bank_points_arc.clone();
@@ -84,7 +84,7 @@ fn main() {
         const SERVER_ADDRESS: &str = "ws://127.0.0.1:3000";
         let _ = connect(SERVER_ADDRESS, |sender| {
             Client {
-                cards_mutex_arc: cards_mutex_arc_clone.clone(),
+                player_cards_mutex_arc: player_cards_mutex_arc_clone.clone(),
                 bank_cards_mutex_arc: bank_cards_mutex_arc_clone.clone(),
                 hand_points_arc: hand_points_arc_clone.clone(),
                 bank_points_arc: bank_points_arc_clone.clone(),
@@ -135,7 +135,6 @@ fn main() {
     let cards_images = cards::load_all_cards_textures(&mut window);
 
     const TITLE_FONT_PATH: &str = "res/title_font.ttf";
-
     let mut glyphs = Glyphs::new(
         TITLE_FONT_PATH,
         window.factory.clone(),
@@ -148,7 +147,7 @@ fn main() {
             break;
         }
 
-        let mut player_cards = cards_mutex_arc.lock().unwrap();
+        let mut player_cards = player_cards_mutex_arc.lock().unwrap();
         let mut bank_cards = bank_cards_mutex_arc.lock().unwrap();
 
         if let Some(Button::Keyboard(Key::Return)) = event.press_args() {
