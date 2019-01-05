@@ -18,7 +18,7 @@ use crate::message_action::MessageAction;
 use crate::event::Event;
 
 pub struct Client {
-    pub cards_mutex_arc: Arc<Mutex<Vec<u16>>>,
+    pub player_cards_mutex_arc: Arc<Mutex<Vec<u16>>>,
     pub bank_cards_mutex_arc: Arc<Mutex<Vec<u16>>>,
     pub hand_points_arc: Arc<Mutex<u8>>,
     pub bank_points_arc: Arc<Mutex<u8>>,
@@ -62,7 +62,7 @@ impl Handler for Client {
 
         if data.action == MessageAction::SendPlayerCard {
 
-            let mut displayed_cards = self.cards_mutex_arc.lock()
+            let mut displayed_cards = self.player_cards_mutex_arc.lock()
                 .unwrap();
             displayed_cards.push(data.card_index);
 
