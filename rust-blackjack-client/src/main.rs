@@ -113,7 +113,6 @@ fn main() {
         text: player_name.clone(),
         player_handpoints: 0,
     };
-
     let message = serde_json::to_string(&new_player_message).unwrap();
     sender.send(message).unwrap();
 
@@ -167,9 +166,7 @@ fn main() {
                 text: "".to_string(),
                 player_handpoints: 0,
             };
-
             let message = serde_json::to_string(&hit_message).unwrap();
-
             sender.send(message).unwrap();
         }
 
