@@ -118,7 +118,6 @@ fn main() {
 
     const WINDOW_WIDTH: f64 = 800.0;
     const WINDOW_HEIGHT: f64 = 600.0;
-
     let mut window: PistonWindow = WindowSettings::new(
         "rust-blackjack",
         [

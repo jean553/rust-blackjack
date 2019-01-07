@@ -9,6 +9,7 @@ use ws::{
 
 use std::sync::{
     Mutex,
+    MutexGuard,
     Arc,
     mpsc,
 };
@@ -30,7 +31,8 @@ pub struct Client {
 impl Handler for Client {
 
     /// Called when a successful connexion has been established with the server,
-    /// sends a successful connection event to the main thread through the channel.
+    /// sends a successful connection event to the main thread through the channel;
+    /// sending that first message to the main thread unlocks it and starts rendering the window.
     fn on_open(
         &mut self,
         _: Handshake
@@ -46,6 +48,8 @@ impl Handler for Client {
     }
 
     /// Called when a message is received from the server.
+    /// Stores the message into a socket message object
+    /// and modifies the client according to the message action.
     ///
     /// # Args:
     ///
@@ -55,23 +59,21 @@ impl Handler for Client {
         message: Message,
     ) -> Result<()> {
 
-        let data: SocketMessage = serde_json::from_str(
-            &message.into_text()
-                .unwrap()
-        ).unwrap();
+        let text_message: &str = &message.into_text().unwrap();
+        let data: SocketMessage = serde_json::from_str(text_message).unwrap();
 
         if data.action == MessageAction::SendPlayerCard {
 
-            let mut displayed_cards = self.player_cards_mutex_arc.lock()
-                .unwrap();
+            let mut displayed_cards: MutexGuard<Vec<u16>> =
+                self.player_cards_mutex_arc.lock().unwrap();
             displayed_cards.push(data.card_index);
 
-            let mut remaining_cards_amount = self.cards_amount_arc.lock()
-                .unwrap();
+            let mut remaining_cards_amount: MutexGuard<u16> =
+                self.cards_amount_arc.lock().unwrap();
             *remaining_cards_amount = data.cards_amount;
 
-            let mut hand_points = self.hand_points_arc.lock().
-                unwrap();
+            let mut hand_points: MutexGuard<u8> =
+                self.hand_points_arc.lock().unwrap();
             *hand_points = data.player_handpoints;
 
             return Ok(());
@@ -79,21 +81,25 @@ impl Handler for Client {
 
         if data.action == MessageAction::SendBankCard {
 
-            let mut bank_cards = self.bank_cards_mutex_arc.lock()
-                .unwrap();
+            let mut bank_cards: MutexGuard<Vec<u16>> =
+                self.bank_cards_mutex_arc.lock().unwrap();
             bank_cards.push(data.card_index);
 
-            let mut bank_points = self.bank_points_arc.lock()
-                .unwrap();
+            let mut bank_points: MutexGuard<u8> =
+                self.bank_points_arc.lock().unwrap();
             *bank_points = data.player_handpoints;
         }
 
         Ok(())
     }
 
-    /// Called when the server closes the connection. Sends a message to the main thread in order to stop the program.
-    fn on_close(&mut self, _: CloseCode, _: &str) {
-
+    /// Called when the server closes the connection.
+    /// Sends a message to the main thread in order to stop the program.
+    fn on_close(
+        &mut self,
+        _: CloseCode,
+        _: &str
+    ) {
         self.channel_sender.send(Event::Disconnect).unwrap();
     }
 }
