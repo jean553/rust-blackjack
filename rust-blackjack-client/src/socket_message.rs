@@ -1,3 +1,5 @@
+//! Socket message structure.
+
 use crate::message_action::MessageAction;
 
 #[derive(Serialize, Deserialize)]

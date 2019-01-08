@@ -16,7 +16,7 @@ use piston_window::{
 /// `file_name` - name of the texture file to load (without prefix/suffix)
 fn load_one_card_texture(
     window: &mut PistonWindow,
-    file_name: &str
+    file_name: &str,
 ) -> G2dTexture {
 
     let mut file_path: String = "res/".to_string();
