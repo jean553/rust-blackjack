@@ -1,3 +1,5 @@
+//! Rendering routines and functions refactoring.
+
 use piston_window::{
     image,
     Context,

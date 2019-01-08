@@ -1,3 +1,5 @@
+//! Handles the web socket client.
+
 use ws::{
     Handler,
     Result,
