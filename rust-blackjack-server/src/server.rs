@@ -1,3 +1,5 @@
+//! The main server structure and implementation.
+
 use ws::{
     Sender,
     Handler,
