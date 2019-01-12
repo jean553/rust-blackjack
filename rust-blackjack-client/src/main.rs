@@ -145,10 +145,16 @@ fn main() {
             break;
         }
 
+        let pressed_key = event.press_args();
+
+        if let Some(Button::Keyboard(Key::Escape)) = pressed_key {
+            break;
+        }
+
         let mut player_cards = player_cards_mutex_arc.lock().unwrap();
         let mut bank_cards = bank_cards_mutex_arc.lock().unwrap();
 
-        if let Some(Button::Keyboard(Key::Return)) = event.press_args() {
+        if let Some(Button::Keyboard(Key::Return)) = pressed_key {
 
             let hand_points = hand_points_arc.lock().unwrap();
 
