@@ -1,5 +1,4 @@
 #![deny(warnings)]
-#![feature(uniform_paths)]
 
 extern crate ws;
 extern crate rand;

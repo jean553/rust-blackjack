@@ -1,5 +1,4 @@
 #![deny(warnings)]
-#![feature(uniform_paths)]
 
 extern crate piston_window;
 extern crate ws;
