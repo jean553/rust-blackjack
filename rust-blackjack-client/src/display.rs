@@ -16,6 +16,7 @@ use std::sync::{
 };
 
 const WHITE_COLOR: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
+const RED_COLOR: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
 
 /// Displays the given cards at the given position.
 ///
@@ -144,8 +145,6 @@ pub fn display_information(
     hand_points: &Arc<Mutex<u8>>,
 ) {
 
-    const RED_COLOR: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
-
     const INFO_FONT_SIZE: u32 = 24;
     const INFO_HORIZONTAL_POSITION: f64 = 10.0;
     const INFO_VERTICAL_POSITION: f64 = 570.0;
@@ -243,8 +242,14 @@ pub fn display_hand_points(
 
     let hand_points = hand_points.lock().unwrap();
 
+    const MAX_HAND_POINTS: u8 = 21;
+
     text::Text::new_color(
-        WHITE_COLOR,
+        if *hand_points > MAX_HAND_POINTS {
+            RED_COLOR
+        } else {
+            WHITE_COLOR
+        },
         POINTS_FONT_SIZE,
     ).draw(
         &*hand_points.to_string(),
