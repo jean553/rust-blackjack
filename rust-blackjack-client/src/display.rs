@@ -210,7 +210,7 @@ pub fn display_bank_points(
     glyphs: &mut Glyphs,
     bank_points: &Arc<Mutex<u8>>,
 ) {
-    const BANK_POINTS_HORIZONTAL_POSITION: f64 = 400.0;
+    const BANK_POINTS_HORIZONTAL_POSITION: f64 = 200.0;
     const BANK_POINTS_VERTICAL_POSITION: f64 = 250.0;
     const POINTS_FONT_SIZE: u32 = 32;
 

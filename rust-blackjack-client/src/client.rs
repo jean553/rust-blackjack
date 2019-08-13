@@ -92,6 +92,17 @@ impl Handler for Client {
             *bank_points = data.player_handpoints;
         }
 
+        if data.action == MessageAction::SendBankCards {
+
+            let mut bank_cards: MutexGuard<Vec<u16>> =
+                self.bank_cards_mutex_arc.lock().unwrap();
+            *bank_cards = data.bank_cards;
+
+            let mut bank_points: MutexGuard<u8> =
+                self.bank_points_arc.lock().unwrap();
+            *bank_points = data.player_handpoints;
+        }
+
         Ok(())
     }
 

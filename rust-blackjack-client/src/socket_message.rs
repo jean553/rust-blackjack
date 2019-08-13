@@ -9,4 +9,5 @@ pub struct SocketMessage {
     pub cards_amount: u16,
     pub text: String,
     pub player_handpoints: u8,
+    pub bank_cards: Vec<u16>,
 }

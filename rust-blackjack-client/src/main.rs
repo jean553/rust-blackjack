@@ -111,6 +111,7 @@ fn main() {
         cards_amount: 0,
         text: player_name.clone(),
         player_handpoints: 0,
+        bank_cards: vec![],
     };
     let message = serde_json::to_string(&new_player_message).unwrap();
     sender.send(message).unwrap();
@@ -155,39 +156,56 @@ fn main() {
 
         if let Some(Button::Keyboard(Key::Return)) = pressed_key {
 
-            let hand_points = hand_points_arc.lock().unwrap();
-
-            const MAX_HAND_POINTS: u8 = 21;
-            if *hand_points > MAX_HAND_POINTS {
-                player_cards.clear();
-                bank_cards.clear();
-            }
-
-            let hit_message = SocketMessage {
+            let mut message = SocketMessage {
                 action: MessageAction::Hit,
                 card_index: 0,
                 cards_amount: 0,
                 text: "".to_string(),
                 player_handpoints: 0,
+                bank_cards: vec![],
             };
-            let message = serde_json::to_string(&hit_message).unwrap();
+
+            let bank_points = bank_points_arc.lock().unwrap();
+            let hand_points = hand_points_arc.lock().unwrap();
+
+            const BANK_MAX_HAND_POINTS: u8 = 17;
+            const MAX_HAND_POINTS: u8 = 21;
+
+            if *bank_points >= BANK_MAX_HAND_POINTS {
+                player_cards.clear();
+                bank_cards.clear();
+                message.action = MessageAction::Restart;
+            }
+            else if *hand_points >= MAX_HAND_POINTS {
+                message.action = MessageAction::Continue;
+            }
+
+            let message = serde_json::to_string(&message).unwrap();
             sender.send(message).unwrap();
         }
 
         else if let Some(Button::Keyboard(Key::Space)) = pressed_key {
 
-            player_cards.clear();
-            bank_cards.clear();
+            let bank_points = bank_points_arc.lock().unwrap();
+            let hand_points = hand_points_arc.lock().unwrap();
 
-            let stand_message = SocketMessage {
-                action: MessageAction::Stand,
-                card_index: 0,
-                cards_amount: 0,
-                text: "".to_string(),
-                player_handpoints: 0,
-            };
-            let message = serde_json::to_string(&stand_message).unwrap();
-            sender.send(message).unwrap();
+            const BANK_MAX_HAND_POINTS: u8 = 17;
+            const MAX_HAND_POINTS: u8 = 21;
+
+            if *bank_points < BANK_MAX_HAND_POINTS &&
+                *hand_points <= MAX_HAND_POINTS {
+
+                let stand_message = SocketMessage {
+                    action: MessageAction::Stand,
+                    card_index: 0,
+                    cards_amount: 0,
+                    text: "".to_string(),
+                    player_handpoints: 0,
+                    bank_cards: vec![],
+                };
+                let message = serde_json::to_string(&stand_message).unwrap();
+                sender.send(message).unwrap();
+            }
         }
 
         window.draw_2d(
