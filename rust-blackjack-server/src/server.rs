@@ -211,6 +211,18 @@ impl Handler for Server {
             return Ok(());
         }
 
+        if data.action == MessageAction::Stand {
+
+            let player_handpoints = self.players_handpoints.get_mut(0).unwrap();
+            *player_handpoints = 0;
+
+            self.send_card();
+            self.send_card();
+            self.send_bank_card();
+
+            return Ok(());
+        }
+
         if data.action == MessageAction::NewPlayer {
 
             println!("Player name: {}", data.text);

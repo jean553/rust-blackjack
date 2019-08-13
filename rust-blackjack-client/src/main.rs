@@ -174,6 +174,22 @@ fn main() {
             sender.send(message).unwrap();
         }
 
+        else if let Some(Button::Keyboard(Key::Space)) = pressed_key {
+
+            player_cards.clear();
+            bank_cards.clear();
+
+            let stand_message = SocketMessage {
+                action: MessageAction::Stand,
+                card_index: 0,
+                cards_amount: 0,
+                text: "".to_string(),
+                player_handpoints: 0,
+            };
+            let message = serde_json::to_string(&stand_message).unwrap();
+            sender.send(message).unwrap();
+        }
+
         window.draw_2d(
             &event,
             |context, mut window| {
