@@ -172,11 +172,20 @@ pub fn display_information(
         return;
     }
 
+    const HIT_OR_STAND_MESSAGE: &str = "Enter to HIT, Space to STAND";
+    const CONTINUE_MESSAGE: &str = "21 ! Enter to CONTINUE";
+
+    let displayed_message = if *hand_points == 21 {
+        CONTINUE_MESSAGE
+    } else {
+        HIT_OR_STAND_MESSAGE
+    };
+
     text::Text::new_color(
         WHITE_COLOR,
         INFO_FONT_SIZE,
     ).draw(
-        "HIT - press Enter",
+        displayed_message,
         glyphs,
         &context.draw_state,
         context.transform.trans(
