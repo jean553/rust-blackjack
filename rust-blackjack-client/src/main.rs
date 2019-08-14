@@ -106,7 +106,7 @@ fn main() {
     };
 
     let new_player_message = SocketMessage {
-        action: MessageAction::NewPlayer,
+        action: MessageAction::Restart,
         card_index: 0,
         cards_amount: 0,
         text: player_name.clone(),
