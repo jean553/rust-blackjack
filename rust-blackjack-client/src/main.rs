@@ -44,7 +44,7 @@ use display::{
     display_player_name,
     display_information,
     display_bank_points,
-    display_hand_points,
+    display_player_points,
     display_title,
 };
 
@@ -52,7 +52,7 @@ fn main() {
 
     let player_cards_mutex_arc = Arc::new(Mutex::new(vec![]));
     let bank_cards_mutex_arc = Arc::new(Mutex::new(vec![]));
-    let hand_points_arc: Arc<Mutex<u8>> = Arc::new(Mutex::new(0));
+    let player_points_arc: Arc<Mutex<u8>> = Arc::new(Mutex::new(0));
     let bank_points_arc: Arc<Mutex<u8>> = Arc::new(Mutex::new(0));
     let remaining_cards_amount_arc: Arc<Mutex<u16>> = Arc::new(Mutex::new(0));
 
@@ -72,7 +72,7 @@ fn main() {
        still used by the main thread */
     let player_cards_mutex_arc_clone = player_cards_mutex_arc.clone();
     let bank_cards_mutex_arc_clone = bank_cards_mutex_arc.clone();
-    let hand_points_arc_clone = hand_points_arc.clone();
+    let player_points_arc_clone = player_points_arc.clone();
     let bank_points_arc_clone = bank_points_arc.clone();
     let remaining_cards_amount_arc_clone = remaining_cards_amount_arc.clone();
 
@@ -85,7 +85,7 @@ fn main() {
             Client {
                 player_cards_mutex_arc: player_cards_mutex_arc_clone.clone(),
                 bank_cards_mutex_arc: bank_cards_mutex_arc_clone.clone(),
-                hand_points_arc: hand_points_arc_clone.clone(),
+                player_points_arc: player_points_arc_clone.clone(),
                 bank_points_arc: bank_points_arc_clone.clone(),
                 cards_amount_arc: remaining_cards_amount_arc_clone.clone(),
                 socket_sender: sender,
@@ -166,17 +166,17 @@ fn main() {
             };
 
             let bank_points = bank_points_arc.lock().unwrap();
-            let hand_points = hand_points_arc.lock().unwrap();
+            let player_points = player_points_arc.lock().unwrap();
 
             const BANK_MAX_HAND_POINTS: u8 = 17;
-            const MAX_HAND_POINTS: u8 = 21;
+            const PLAYER_MAX_HAND_POINTS: u8 = 21;
 
             if *bank_points >= BANK_MAX_HAND_POINTS {
                 player_cards.clear();
                 bank_cards.clear();
                 message.action = MessageAction::Restart;
             }
-            else if *hand_points >= MAX_HAND_POINTS {
+            else if *player_points >= PLAYER_MAX_HAND_POINTS {
                 message.action = MessageAction::Continue;
             }
 
@@ -187,13 +187,13 @@ fn main() {
         else if let Some(Button::Keyboard(Key::Space)) = pressed_key {
 
             let bank_points = bank_points_arc.lock().unwrap();
-            let hand_points = hand_points_arc.lock().unwrap();
+            let player_points = player_points_arc.lock().unwrap();
 
             const BANK_MAX_HAND_POINTS: u8 = 17;
-            const MAX_HAND_POINTS: u8 = 21;
+            const PLAYER_MAX_HAND_POINTS: u8 = 21;
 
             if *bank_points < BANK_MAX_HAND_POINTS &&
-                *hand_points <= MAX_HAND_POINTS {
+                *player_points <= PLAYER_MAX_HAND_POINTS {
 
                 let stand_message = SocketMessage {
                     action: MessageAction::Stand,
@@ -224,11 +224,11 @@ fn main() {
                     &mut glyphs,
                 );
 
-                display_hand_points(
+                display_player_points(
                     window,
                     &context,
                     &mut glyphs,
-                    &hand_points_arc,
+                    &player_points_arc,
                 );
 
                 display_bank_points(
@@ -242,7 +242,7 @@ fn main() {
                     window,
                     &context,
                     &mut glyphs,
-                    &hand_points_arc,
+                    &player_points_arc,
                 );
 
                 display_player_name(
