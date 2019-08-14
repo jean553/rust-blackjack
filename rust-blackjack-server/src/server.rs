@@ -72,7 +72,7 @@ fn get_card_points(
 
 impl Server {
 
-    /// Creates a new server.
+    /// Creates a new server and shuffles all the cards, making them ready to be drawn.
     ///
     /// # Args:
     ///
@@ -96,7 +96,7 @@ impl Server {
     }
 
     /// Sends one random card to the client through the socket.
-    fn send_card(&mut self) {
+    fn draw_one_player_card(&mut self) {
 
         let card_index = self.cards.pop().unwrap();
 
@@ -129,7 +129,7 @@ impl Server {
     }
 
     /// Send a card to the bank, and render the cards on the client side.
-    fn send_bank_card(&mut self) {
+    fn draw_one_bank_card(&mut self) {
 
         let card_index = self.cards.pop().unwrap();
 
@@ -158,7 +158,7 @@ impl Server {
     }
 
     /// TODO
-    fn draw_bank_cards(&mut self) {
+    fn draw_all_bank_cards(&mut self) {
 
         const MAX_HAND_POINTS: u8 = 17;
         while self.bank_handpoints < MAX_HAND_POINTS {
@@ -177,10 +177,6 @@ impl Server {
 
             self.bank_handpoints += card_points;
         }
-    }
-
-    /// TODO
-    fn send_bank_cards(&self) {
 
         let cards_message = SocketMessage {
             action: MessageAction::SendBankCards,
@@ -216,9 +212,9 @@ impl Handler for Server {
 
         self.players_handpoints.push(0);
 
-        self.send_card();
-        self.send_card();
-        self.send_bank_card();
+        self.draw_one_player_card();
+        self.draw_one_player_card();
+        self.draw_one_bank_card();
 
         Ok(())
     }
@@ -246,13 +242,13 @@ impl Handler for Server {
             if player_handpoints > MAX_HAND_POINTS {
                 let player_handpoints = self.players_handpoints.get_mut(0).unwrap();
                 *player_handpoints = 0;
-                self.send_card();
+                self.draw_one_player_card();
             }
 
-            self.send_card();
+            self.draw_one_player_card();
 
             if player_handpoints > MAX_HAND_POINTS {
-                self.send_bank_card();
+                self.draw_one_bank_card();
             }
 
             println!(
@@ -266,8 +262,7 @@ impl Handler for Server {
         if data.action == MessageAction::Stand ||
             data.action == MessageAction::Continue {
 
-            self.draw_bank_cards();
-            self.send_bank_cards();
+            self.draw_all_bank_cards();
 
             return Ok(());
         }
@@ -279,9 +274,9 @@ impl Handler for Server {
             self.bank_handpoints = 0;
 
             self.bank_cards.clear();
-            self.send_card();
-            self.send_card();
-            self.send_bank_card();
+            self.draw_one_player_card();
+            self.draw_one_player_card();
+            self.draw_one_bank_card();
 
             return Ok(());
         }
