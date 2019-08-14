@@ -116,21 +116,15 @@ impl Server {
     /// Sends one random card to the client through the socket.
     fn draw_one_player_card(&mut self) {
 
-        let card_index = self.cards.pop().unwrap();
-
-        const ONE_SET_CARDS_AMOUNT: u16 = 52;
-        let one_set_card_index = (card_index % ONE_SET_CARDS_AMOUNT) as u8;
+        let (
+            card_index,
+            card_points
+        ) = self.draw_one_card();
 
         /* FIXME: we handle only handpoints of the first player for now,
            of course we should be able to handle all the playing players */
         let player_handpoints = self.players_handpoints.get_mut(0).unwrap();
-
-        let drawn_card_points = get_card_points(
-            one_set_card_index,
-            *player_handpoints,
-        );
-
-        *player_handpoints += drawn_card_points;
+        *player_handpoints += card_points;
 
         let card_message = SocketMessage {
             action: MessageAction::SendPlayerCard,
