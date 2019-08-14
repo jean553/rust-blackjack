@@ -212,10 +212,6 @@ impl Handler for Server {
 
         self.players_handpoints.push(0);
 
-        self.draw_one_player_card();
-        self.draw_one_player_card();
-        self.draw_one_bank_card();
-
         Ok(())
     }
 
@@ -279,16 +275,6 @@ impl Handler for Server {
             self.draw_one_bank_card();
 
             return Ok(());
-        }
-
-        if data.action == MessageAction::NewPlayer {
-
-            println!("Player name: {}", data.text);
-
-            println!(
-                "Player hand points: {}",
-                *self.players_handpoints.get(0).unwrap()
-            );
         }
 
         Ok(())
