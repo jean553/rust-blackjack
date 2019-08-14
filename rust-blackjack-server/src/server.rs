@@ -171,18 +171,12 @@ impl Server {
         const MAX_HAND_POINTS: u8 = 17;
         while self.bank_handpoints < MAX_HAND_POINTS {
 
-            let card_index = self.cards.pop().unwrap();
+            let (
+                card_index,
+                card_points
+            ) = self.draw_one_card();
 
             self.bank_cards.push(card_index);
-
-            const ONE_SET_CARDS_AMOUNT: u16 = 52;
-            let one_set_card_index = (card_index % ONE_SET_CARDS_AMOUNT) as u8;
-
-            let card_points = get_card_points(
-                one_set_card_index,
-                self.bank_handpoints,
-            );
-
             self.bank_handpoints += card_points;
         }
 
@@ -194,9 +188,7 @@ impl Server {
             player_handpoints: self.bank_handpoints,
             bank_cards: self.bank_cards.clone(),
         };
-
         let message = serde_json::to_string(&cards_message).unwrap();
-
         self.output.send(message).unwrap();
     }
 }
