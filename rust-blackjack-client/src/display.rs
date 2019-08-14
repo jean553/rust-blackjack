@@ -137,12 +137,12 @@ pub fn display_player_name(
 /// `window` - the window where to draw
 /// `context` - the rendering loop context
 /// `glyphs` - the text rendering Piston glyph
-/// `hand_points` - the amount of the player hand points
+/// `player_points` - the amount of the player hand points
 pub fn display_information(
     window: &mut G2d,
     context: &Context,
     glyphs: &mut Glyphs,
-    hand_points: &Arc<Mutex<u8>>,
+    player_points: &Arc<Mutex<u8>>,
 ) {
 
     const INFO_FONT_SIZE: u32 = 24;
@@ -151,9 +151,9 @@ pub fn display_information(
 
     const MAX_HAND_POINTS: u8 = 21;
 
-    let hand_points = hand_points.lock().unwrap();
+    let player_points = player_points.lock().unwrap();
 
-    if *hand_points > MAX_HAND_POINTS {
+    if *player_points > MAX_HAND_POINTS {
 
         text::Text::new_color(
             RED_COLOR,
@@ -175,7 +175,7 @@ pub fn display_information(
     const HIT_OR_STAND_MESSAGE: &str = "Enter to HIT, Space to STAND";
     const CONTINUE_MESSAGE: &str = "21 ! Enter to CONTINUE";
 
-    let displayed_message = if *hand_points == 21 {
+    let displayed_message = if *player_points == 21 {
         CONTINUE_MESSAGE
     } else {
         HIT_OR_STAND_MESSAGE
@@ -238,30 +238,30 @@ pub fn display_bank_points(
 /// `window` - the window where to draw
 /// `context` - the rendering loop context
 /// `glyphs` - the text rendering Piston glyph
-/// `hand_points` - the hand points amount
-pub fn display_hand_points(
+/// `player_points` - the hand points amount
+pub fn display_player_points(
     window: &mut G2d,
     context: &Context,
     glyphs: &mut Glyphs,
-    hand_points: &Arc<Mutex<u8>>,
+    player_points: &Arc<Mutex<u8>>,
 ) {
     const POINTS_FONT_SIZE: u32 = 32;
     const POINTS_HORIZONTAL_POSITION: f64 = 400.0;
     const POINTS_VERTICAL_POSITION: f64 = 400.0;
 
-    let hand_points = hand_points.lock().unwrap();
+    let player_points = player_points.lock().unwrap();
 
     const MAX_HAND_POINTS: u8 = 21;
 
     text::Text::new_color(
-        if *hand_points > MAX_HAND_POINTS {
+        if *player_points > MAX_HAND_POINTS {
             RED_COLOR
         } else {
             WHITE_COLOR
         },
         POINTS_FONT_SIZE,
     ).draw(
-        &*hand_points.to_string(),
+        &*player_points.to_string(),
         glyphs,
         &context.draw_state,
         context.transform.trans(
