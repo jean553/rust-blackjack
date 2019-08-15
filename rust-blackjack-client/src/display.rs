@@ -149,7 +149,7 @@ pub fn display_information(
     const MIN_BANK_HAND_POINTS: u8 = 17;
     const MAX_VALID_HAND_POINTS: u8 = 21;
 
-    const HIT_OR_STAND_MESSAGE: &str = "Enter to HIT, Space to STAND";
+    const HIT_OR_STAND_MESSAGE: &str = "Enter to HIT, Space to STAND, D to Double Down";
     const CONTINUE_MESSAGE: &str = "21 ! Enter to CONTINUE";
     const BANK_WINS_MESSAGE: &str = "Dealer wins";
     const PLAYER_WINS_MESSAGE: &str = "Player wins !";

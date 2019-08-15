@@ -24,7 +24,10 @@ use piston_window::{
     TextureSettings,
 };
 
-use ws::connect;
+use ws::{
+    Sender,
+    connect,
+};
 
 use std::io::stdin;
 use std::thread;
@@ -48,12 +51,58 @@ use display::{
     display_title,
 };
 
+/// Asks a card to the server, this is a "hit" process. Refactored here as used multiple times.
+///
+/// # Args:
+///
+/// `sender` - the web socket sender in order to send messages to the server
+/// `bank_points_mutex_arc` - the bank points amount
+/// `player_points_mutex_arc` - the player points amount
+/// `player_cards` - the current player cards
+/// `bank_cards` - the current bank cards
+fn request_card(
+    sender: &Sender,
+    bank_points_mutex_arc: &Arc<Mutex<u8>>,
+    player_points_mutex_arc: &Arc<Mutex<u8>>,
+    player_cards: &mut Vec<u16>,
+    bank_cards: &mut Vec<u16>,
+) {
+    let mut message = SocketMessage {
+        action: MessageAction::Hit,
+        card_index: 0,
+        cards_amount: 0,
+        text: "".to_string(),
+        player_handpoints: 0,
+        bank_cards: vec![],
+    };
+
+    let bank_points = bank_points_mutex_arc.lock().unwrap();
+    let player_points = player_points_mutex_arc.lock().unwrap();
+
+    const BANK_MAX_HAND_POINTS: u8 = 17;
+    const PLAYER_MAX_HAND_POINTS: u8 = 21;
+
+    if *bank_points >= BANK_MAX_HAND_POINTS {
+
+        player_cards.clear();
+        bank_cards.clear();
+
+        message.action = MessageAction::Restart;
+    }
+    else if *player_points >= PLAYER_MAX_HAND_POINTS {
+        message.action = MessageAction::Continue;
+    }
+
+    let message = serde_json::to_string(&message).unwrap();
+    sender.send(message).unwrap();
+}
+
 fn main() {
 
     let player_cards_mutex_arc = Arc::new(Mutex::new(vec![]));
     let bank_cards_mutex_arc = Arc::new(Mutex::new(vec![]));
-    let player_points_arc: Arc<Mutex<u8>> = Arc::new(Mutex::new(0));
-    let bank_points_arc: Arc<Mutex<u8>> = Arc::new(Mutex::new(0));
+    let player_points_mutex_arc: Arc<Mutex<u8>> = Arc::new(Mutex::new(0));
+    let bank_points_mutex_arc: Arc<Mutex<u8>> = Arc::new(Mutex::new(0));
     let remaining_cards_amount_arc: Arc<Mutex<u16>> = Arc::new(Mutex::new(0));
 
     println!("Player name: ");
@@ -72,8 +121,8 @@ fn main() {
        still used by the main thread */
     let player_cards_mutex_arc_clone = player_cards_mutex_arc.clone();
     let bank_cards_mutex_arc_clone = bank_cards_mutex_arc.clone();
-    let player_points_arc_clone = player_points_arc.clone();
-    let bank_points_arc_clone = bank_points_arc.clone();
+    let player_points_mutex_arc_clone = player_points_mutex_arc.clone();
+    let bank_points_mutex_arc_clone = bank_points_mutex_arc.clone();
     let remaining_cards_amount_arc_clone = remaining_cards_amount_arc.clone();
 
     /* the socket handling is performed into a dedicated thread,
@@ -85,8 +134,8 @@ fn main() {
             Client {
                 player_cards_mutex_arc: player_cards_mutex_arc_clone.clone(),
                 bank_cards_mutex_arc: bank_cards_mutex_arc_clone.clone(),
-                player_points_arc: player_points_arc_clone.clone(),
-                bank_points_arc: bank_points_arc_clone.clone(),
+                player_points_mutex_arc: player_points_mutex_arc_clone.clone(),
+                bank_points_mutex_arc: bank_points_mutex_arc_clone.clone(),
                 cards_amount_arc: remaining_cards_amount_arc_clone.clone(),
                 socket_sender: sender,
                 channel_sender: channel_sender.clone(),
@@ -156,38 +205,33 @@ fn main() {
 
         if let Some(Button::Keyboard(Key::Return)) = pressed_key {
 
-            let mut message = SocketMessage {
-                action: MessageAction::Hit,
-                card_index: 0,
-                cards_amount: 0,
-                text: "".to_string(),
-                player_handpoints: 0,
-                bank_cards: vec![],
-            };
+            request_card(
+                &sender,
+                &bank_points_mutex_arc,
+                &player_points_mutex_arc,
+                &mut player_cards,
+                &mut bank_cards,
+            );
+        }
 
-            let bank_points = bank_points_arc.lock().unwrap();
-            let player_points = player_points_arc.lock().unwrap();
+        if let Some(Button::Keyboard(Key::D)) = pressed_key {
 
-            const BANK_MAX_HAND_POINTS: u8 = 17;
-            const PLAYER_MAX_HAND_POINTS: u8 = 21;
-
-            if *bank_points >= BANK_MAX_HAND_POINTS {
-                player_cards.clear();
-                bank_cards.clear();
-                message.action = MessageAction::Restart;
+            const REQUIRED_CARDS_AMOUNT_FOR_DOUBLE: usize = 2;
+            if player_cards.len() == REQUIRED_CARDS_AMOUNT_FOR_DOUBLE {
+                request_card(
+                    &sender,
+                    &bank_points_mutex_arc,
+                    &player_points_mutex_arc,
+                    &mut player_cards,
+                    &mut bank_cards,
+                );
             }
-            else if *player_points >= PLAYER_MAX_HAND_POINTS {
-                message.action = MessageAction::Continue;
-            }
-
-            let message = serde_json::to_string(&message).unwrap();
-            sender.send(message).unwrap();
         }
 
         else if let Some(Button::Keyboard(Key::Space)) = pressed_key {
 
-            let bank_points = bank_points_arc.lock().unwrap();
-            let player_points = player_points_arc.lock().unwrap();
+            let bank_points = bank_points_mutex_arc.lock().unwrap();
+            let player_points = player_points_mutex_arc.lock().unwrap();
 
             const BANK_MAX_HAND_POINTS: u8 = 17;
             const PLAYER_MAX_HAND_POINTS: u8 = 21;
@@ -228,22 +272,22 @@ fn main() {
                     window,
                     &context,
                     &mut glyphs,
-                    &player_points_arc,
+                    &player_points_mutex_arc,
                 );
 
                 display_bank_points(
                     window,
                     &context,
                     &mut glyphs,
-                    &bank_points_arc,
+                    &bank_points_mutex_arc,
                 );
 
                 display_information(
                     window,
                     &context,
                     &mut glyphs,
-                    &player_points_arc,
-                    &bank_points_arc,
+                    &player_points_mutex_arc,
+                    &bank_points_mutex_arc,
                 );
 
                 display_player_name(
