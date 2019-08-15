@@ -291,6 +291,7 @@ fn main() {
                     &mut glyphs,
                     &player_points_mutex_arc,
                     &bank_points_mutex_arc,
+                    player_cards.len()
                 );
 
                 display_player_name(

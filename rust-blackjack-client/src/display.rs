@@ -145,11 +145,14 @@ pub fn display_information(
     glyphs: &mut Glyphs,
     player_points: &Arc<Mutex<u8>>,
     bank_points: &Arc<Mutex<u8>>,
+    player_cards_amount: usize,
 ) {
     const MIN_BANK_HAND_POINTS: u8 = 17;
     const MAX_VALID_HAND_POINTS: u8 = 21;
+    const ALLOWED_DOUBLE_CARDS_AMOUNT: usize = 2;
 
-    const HIT_OR_STAND_MESSAGE: &str = "Enter to HIT, Space to STAND, D to Double Down";
+    const HIT_STAND_DOUBLE_MESSAGE: &str = "Enter to HIT, Space to STAND, D to DOUBLE DOWN";
+    const HIT_STAND_MESSAGE: &str = "Enter to HIT, Space to STAND";
     const CONTINUE_MESSAGE: &str = "21 ! Enter to CONTINUE";
     const BANK_WINS_MESSAGE: &str = "Dealer wins";
     const PLAYER_WINS_MESSAGE: &str = "Player wins !";
@@ -183,8 +186,11 @@ pub fn display_information(
     }
     else if *player_points == MAX_VALID_HAND_POINTS {
         CONTINUE_MESSAGE
+    }
+    else if player_cards_amount != ALLOWED_DOUBLE_CARDS_AMOUNT {
+        HIT_STAND_MESSAGE
     } else {
-        HIT_OR_STAND_MESSAGE
+        HIT_STAND_DOUBLE_MESSAGE
     };
 
     let message_color = if *player_points > MAX_VALID_HAND_POINTS {
