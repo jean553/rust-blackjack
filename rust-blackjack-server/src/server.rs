@@ -95,9 +95,7 @@ impl Server {
         }
     }
 
-    /// Draws one card and returns its index and its points amount.
-    ///
-    /// TODO
+    /// Draws one card from the deck and returns its index and its points amount.
     fn draw_one_card(&mut self) -> (u8, u8) {
 
         let card = self.cards.pop().unwrap();
@@ -140,7 +138,7 @@ impl Server {
         self.output.send(message).unwrap();
     }
 
-    /// Send a card to the bank, and render the cards on the client side.
+    /// Draws the first card to the bank, and render the cards on the client side.
     fn draw_one_bank_card(&mut self) {
 
         let (
@@ -165,7 +163,7 @@ impl Server {
         self.output.send(message).unwrap();
     }
 
-    /// TODO
+    /// Draws all the remaining cards of the bank and renders the cards on the client side.
     fn draw_all_bank_cards(&mut self) {
 
         const MAX_HAND_POINTS: u8 = 17;
