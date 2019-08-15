@@ -38,7 +38,7 @@ fn get_card_points(
 ) -> u8 {
 
     const TEN_POINTS_CARDS_START_INDEX: u8 = 32;
-    const ACE_CARDS_START_INDEX: u8 = 47;
+    const ACE_CARDS_START_INDEX: u8 = 48;
 
     if card_index >= TEN_POINTS_CARDS_START_INDEX &&
         card_index < ACE_CARDS_START_INDEX {
