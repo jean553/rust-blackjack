@@ -6,6 +6,7 @@ pub enum MessageAction {
     SendBankCard,
     Hit,
     Stand,
+    DoubleDown,
     Continue,
     SendBankCards,
     Restart,

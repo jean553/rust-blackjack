@@ -229,21 +229,17 @@ impl Handler for Server {
         ).unwrap();
 
         if data.action == MessageAction::Hit {
-
             self.draw_one_player_card();
-
-            return Ok(());
         }
-
-        if data.action == MessageAction::Stand ||
-            data.action == MessageAction::Continue {
-
+        else if data.action == MessageAction::DoubleDown {
+            self.draw_one_player_card();
             self.draw_all_bank_cards();
-
-            return Ok(());
         }
-
-        if data.action == MessageAction::Restart {
+        else if data.action == MessageAction::Stand ||
+            data.action == MessageAction::Continue {
+            self.draw_all_bank_cards();
+        }
+        else if data.action == MessageAction::Restart {
 
             let player_handpoints = self.players_handpoints.get_mut(0).unwrap();
             *player_handpoints = 0;
@@ -253,8 +249,6 @@ impl Handler for Server {
             self.draw_one_player_card();
             self.draw_one_player_card();
             self.draw_one_bank_card();
-
-            return Ok(());
         }
 
         Ok(())
