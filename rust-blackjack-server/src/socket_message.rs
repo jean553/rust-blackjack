@@ -6,8 +6,8 @@ use crate::message_action::MessageAction;
 pub struct SocketMessage {
     pub action: MessageAction,
     pub text: String,
-    pub card_index: u16,
+    pub card_index: u8,
     pub cards_amount: u16,
     pub player_handpoints: u8,
-    pub bank_cards: Vec<u16>,
+    pub bank_cards: Vec<u8>,
 }

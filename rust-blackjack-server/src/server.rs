@@ -23,7 +23,7 @@ pub struct Server {
     cards: Vec<u16>,
     players_handpoints: Vec<u8>,
     bank_handpoints: u8,
-    bank_cards: Vec<u16>,
+    bank_cards: Vec<u8>,
 }
 
 /// Return card points according to a given index.
@@ -98,7 +98,7 @@ impl Server {
     /// Draws one card and returns its index and its points amount.
     ///
     /// TODO
-    fn draw_one_card(&mut self) -> (u16, u8) {
+    fn draw_one_card(&mut self) -> (u8, u8) {
 
         let card = self.cards.pop().unwrap();
 
@@ -110,7 +110,7 @@ impl Server {
             0
         );
 
-        (index as u16, points)
+        (index, points)
     }
 
     /// Sends one random card to the client through the socket.
