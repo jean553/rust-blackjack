@@ -243,6 +243,7 @@ fn main() {
                     &context,
                     &mut glyphs,
                     &player_points_arc,
+                    &bank_points_arc,
                 );
 
                 display_player_name(

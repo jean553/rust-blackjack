@@ -138,11 +138,13 @@ pub fn display_player_name(
 /// `context` - the rendering loop context
 /// `glyphs` - the text rendering Piston glyph
 /// `player_points` - the amount of the player hand points
+/// `bank_points` - the amount of the bank hand points
 pub fn display_information(
     window: &mut G2d,
     context: &Context,
     glyphs: &mut Glyphs,
     player_points: &Arc<Mutex<u8>>,
+    bank_points: &Arc<Mutex<u8>>,
 ) {
 
     const INFO_FONT_SIZE: u32 = 24;
@@ -172,10 +174,38 @@ pub fn display_information(
         return;
     }
 
+    let bank_points = bank_points.lock().unwrap();
+
+    const MIN_BANK_HAND_POINTS: u8 = 17;
+    const MAX_VALID_HAND_POINTS: u8 = 21;
+
     const HIT_OR_STAND_MESSAGE: &str = "Enter to HIT, Space to STAND";
     const CONTINUE_MESSAGE: &str = "21 ! Enter to CONTINUE";
+    const BANK_WINS_MESSAGE: &str = "Dealer wins";
+    const PLAYER_WINS_MESSAGE: &str = "Player wins !";
+    const PUSH_MESSAGE: &str = "Push";
 
-    let displayed_message = if *player_points == 21 {
+    let displayed_message = if
+        *bank_points >= MIN_BANK_HAND_POINTS &&
+        *bank_points <= MAX_VALID_HAND_POINTS &&
+        *player_points < *bank_points {
+        BANK_WINS_MESSAGE
+    }
+    else if *bank_points >= MIN_BANK_HAND_POINTS &&
+        *bank_points <= MAX_VALID_HAND_POINTS &&
+        *player_points == *bank_points {
+        PUSH_MESSAGE
+    }
+    else if (
+        *bank_points >= MIN_BANK_HAND_POINTS &&
+        *player_points > *bank_points
+    ) || (
+        *bank_points > MAX_VALID_HAND_POINTS &&
+        *player_points <= MAX_VALID_HAND_POINTS
+    ) {
+        PLAYER_WINS_MESSAGE
+    }
+    else if *player_points == MAX_VALID_HAND_POINTS {
         CONTINUE_MESSAGE
     } else {
         HIT_OR_STAND_MESSAGE
@@ -246,7 +276,7 @@ pub fn display_player_points(
     player_points: &Arc<Mutex<u8>>,
 ) {
     const POINTS_FONT_SIZE: u32 = 32;
-    const POINTS_HORIZONTAL_POSITION: f64 = 400.0;
+    const POINTS_HORIZONTAL_POSITION: f64 = 200.0;
     const POINTS_VERTICAL_POSITION: f64 = 400.0;
 
     let player_points = player_points.lock().unwrap();
