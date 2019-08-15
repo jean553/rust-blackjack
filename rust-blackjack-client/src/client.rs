@@ -23,8 +23,8 @@ use crate::event::Event;
 pub struct Client {
     pub player_cards_mutex_arc: Arc<Mutex<Vec<u16>>>,
     pub bank_cards_mutex_arc: Arc<Mutex<Vec<u16>>>,
-    pub player_points_arc: Arc<Mutex<u8>>,
-    pub bank_points_arc: Arc<Mutex<u8>>,
+    pub player_points_mutex_arc: Arc<Mutex<u8>>,
+    pub bank_points_mutex_arc: Arc<Mutex<u8>>,
     pub cards_amount_arc: Arc<Mutex<u16>>,
     pub socket_sender: Sender,
     pub channel_sender: mpsc::Sender<Event>,
@@ -75,7 +75,7 @@ impl Handler for Client {
             *remaining_cards_amount = data.cards_amount;
 
             let mut player_points: MutexGuard<u8> =
-                self.player_points_arc.lock().unwrap();
+                self.player_points_mutex_arc.lock().unwrap();
             *player_points = data.player_handpoints;
 
             return Ok(());
@@ -88,7 +88,7 @@ impl Handler for Client {
             bank_cards.push(data.card_index);
 
             let mut bank_points: MutexGuard<u8> =
-                self.bank_points_arc.lock().unwrap();
+                self.bank_points_mutex_arc.lock().unwrap();
             *bank_points = data.player_handpoints;
         }
 
@@ -99,7 +99,7 @@ impl Handler for Client {
             *bank_cards = data.bank_cards;
 
             let mut bank_points: MutexGuard<u8> =
-                self.bank_points_arc.lock().unwrap();
+                self.bank_points_mutex_arc.lock().unwrap();
             *bank_points = data.player_handpoints;
         }
 
