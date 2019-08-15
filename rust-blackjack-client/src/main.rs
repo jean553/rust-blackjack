@@ -62,13 +62,14 @@ use display::{
 /// `bank_cards` - the current bank cards
 fn request_card(
     sender: &Sender,
+    message_action: MessageAction,
     bank_points_mutex_arc: &Arc<Mutex<u8>>,
     player_points_mutex_arc: &Arc<Mutex<u8>>,
     player_cards: &mut Vec<u16>,
     bank_cards: &mut Vec<u16>,
 ) {
     let mut message = SocketMessage {
-        action: MessageAction::Hit,
+        action: message_action,
         card_index: 0,
         cards_amount: 0,
         text: "".to_string(),
@@ -207,6 +208,7 @@ fn main() {
 
             request_card(
                 &sender,
+                MessageAction::Hit,
                 &bank_points_mutex_arc,
                 &player_points_mutex_arc,
                 &mut player_cards,
@@ -220,6 +222,7 @@ fn main() {
             if player_cards.len() == REQUIRED_CARDS_AMOUNT_FOR_DOUBLE {
                 request_card(
                     &sender,
+                    MessageAction::DoubleDown,
                     &bank_points_mutex_arc,
                     &player_points_mutex_arc,
                     &mut player_cards,
