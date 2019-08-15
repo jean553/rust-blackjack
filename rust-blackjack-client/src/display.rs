@@ -146,36 +146,6 @@ pub fn display_information(
     player_points: &Arc<Mutex<u8>>,
     bank_points: &Arc<Mutex<u8>>,
 ) {
-
-    const INFO_FONT_SIZE: u32 = 24;
-    const INFO_HORIZONTAL_POSITION: f64 = 10.0;
-    const INFO_VERTICAL_POSITION: f64 = 570.0;
-
-    const MAX_HAND_POINTS: u8 = 21;
-
-    let player_points = player_points.lock().unwrap();
-
-    if *player_points > MAX_HAND_POINTS {
-
-        text::Text::new_color(
-            RED_COLOR,
-            INFO_FONT_SIZE,
-        ).draw(
-            "Burst! - Press Enter",
-            glyphs,
-            &context.draw_state,
-            context.transform.trans(
-                INFO_HORIZONTAL_POSITION,
-                INFO_VERTICAL_POSITION,
-            ),
-            window,
-        ).unwrap();
-
-        return;
-    }
-
-    let bank_points = bank_points.lock().unwrap();
-
     const MIN_BANK_HAND_POINTS: u8 = 17;
     const MAX_VALID_HAND_POINTS: u8 = 21;
 
@@ -184,9 +154,15 @@ pub fn display_information(
     const BANK_WINS_MESSAGE: &str = "Dealer wins";
     const PLAYER_WINS_MESSAGE: &str = "Player wins !";
     const PUSH_MESSAGE: &str = "Push";
+    const BURST_MESSAGE: &str = "Burst ! Press Enter";
 
-    let displayed_message = if
-        *bank_points >= MIN_BANK_HAND_POINTS &&
+    let player_points = player_points.lock().unwrap();
+    let bank_points = bank_points.lock().unwrap();
+
+    let displayed_message = if *player_points > MAX_VALID_HAND_POINTS {
+        BURST_MESSAGE
+    }
+    else if *bank_points >= MIN_BANK_HAND_POINTS &&
         *bank_points <= MAX_VALID_HAND_POINTS &&
         *player_points < *bank_points {
         BANK_WINS_MESSAGE
@@ -211,8 +187,18 @@ pub fn display_information(
         HIT_OR_STAND_MESSAGE
     };
 
+    let message_color = if *player_points > MAX_VALID_HAND_POINTS {
+        RED_COLOR
+    } else {
+        WHITE_COLOR
+    };
+
+    const INFO_FONT_SIZE: u32 = 24;
+    const INFO_HORIZONTAL_POSITION: f64 = 10.0;
+    const INFO_VERTICAL_POSITION: f64 = 570.0;
+
     text::Text::new_color(
-        WHITE_COLOR,
+        message_color,
         INFO_FONT_SIZE,
     ).draw(
         displayed_message,
