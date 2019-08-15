@@ -230,25 +230,7 @@ impl Handler for Server {
 
         if data.action == MessageAction::Hit {
 
-            let player_handpoints = *self.players_handpoints.get(0).unwrap();
-
-            const MAX_HAND_POINTS: u8 = 21;
-            if player_handpoints > MAX_HAND_POINTS {
-                let player_handpoints = self.players_handpoints.get_mut(0).unwrap();
-                *player_handpoints = 0;
-                self.draw_one_player_card();
-            }
-
             self.draw_one_player_card();
-
-            if player_handpoints > MAX_HAND_POINTS {
-                self.draw_one_bank_card();
-            }
-
-            println!(
-                "Player hand points: {}",
-                *self.players_handpoints.get(0).unwrap()
-            );
 
             return Ok(());
         }
