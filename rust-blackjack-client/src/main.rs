@@ -232,6 +232,8 @@ fn main() {
                 &mut bank_cards,
                 &displayed_bank_cards_amount_mutex_arc,
             );
+
+            displayed_bank_cards_amount_last_update = Instant::now();
         }
 
         if let Some(Button::Keyboard(Key::D)) = pressed_key {
@@ -247,6 +249,8 @@ fn main() {
                     &mut bank_cards,
                     &displayed_bank_cards_amount_mutex_arc,
                 );
+
+                displayed_bank_cards_amount_last_update = Instant::now();
             }
         }
 
@@ -260,6 +264,8 @@ fn main() {
 
             if *bank_points < BANK_MAX_HAND_POINTS &&
                 *player_points <= PLAYER_MAX_HAND_POINTS {
+
+                displayed_bank_cards_amount_last_update = Instant::now();
 
                 let stand_message = SocketMessage {
                     action: MessageAction::Stand,
@@ -277,7 +283,7 @@ fn main() {
         let mut displayed_bank_cards_amount: MutexGuard<usize> =
             displayed_bank_cards_amount_mutex_arc.lock().unwrap();
 
-        const ANIMATED_DRAWING_INTERVAL: u64 = 5000;
+        const ANIMATED_DRAWING_INTERVAL: u64 = 2500;
         if *displayed_bank_cards_amount < bank_cards.len() &&
             bank_cards.len() != 1 &&
             displayed_bank_cards_amount_last_update.elapsed() >
@@ -310,21 +316,23 @@ fn main() {
                     &player_points_mutex_arc,
                 );
 
-                display_bank_points(
-                    window,
-                    &context,
-                    &mut glyphs,
-                    &bank_points_mutex_arc,
-                );
+                if *displayed_bank_cards_amount == bank_cards.len() {
+                    display_bank_points(
+                        window,
+                        &context,
+                        &mut glyphs,
+                        &bank_points_mutex_arc,
+                    );
 
-                display_information(
-                    window,
-                    &context,
-                    &mut glyphs,
-                    &player_points_mutex_arc,
-                    &bank_points_mutex_arc,
-                    player_cards.len()
-                );
+                    display_information(
+                        window,
+                        &context,
+                        &mut glyphs,
+                        &player_points_mutex_arc,
+                        &bank_points_mutex_arc,
+                        player_cards.len()
+                    );
+                }
 
                 display_player_name(
                     window,
