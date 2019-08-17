@@ -28,7 +28,7 @@ const RED_COLOR: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
 /// `cards` - the cards to display
 /// `horizontal_position` - the origin horizontal position of the cards
 /// `vertical_position` - the origin vertical position of the cards
-pub fn display_cards(
+pub fn display_player_cards(
     window: &mut G2d,
     context: &Context,
     all_cards_images: &[G2dTexture],
@@ -51,6 +51,40 @@ pub fn display_cards(
             context.transform.trans(
                 horizontal_position + card_index as f64 * CARDS_DISTANCE,
                 vertical_position + card_index as f64 * CARDS_DISTANCE,
+            ).scale(
+                CARD_DIMENSIONS_SCALE,
+                CARD_DIMENSIONS_SCALE
+            ),
+            window,
+        );
+    }
+}
+
+/// TODO
+pub fn display_bank_cards(
+    window: &mut G2d,
+    context: &Context,
+    all_cards_images: &[G2dTexture],
+    cards: &Vec<u16>,
+    displayed_bank_cards_amount: usize,
+) {
+
+    for card_index in 0..displayed_bank_cards_amount {
+
+        const CARDS_DISTANCE: f64 = 40.0;
+        const CARD_DIMENSIONS_SCALE: f64 = 0.5;
+        const ONE_GAME_CARDS_AMOUNT: usize = 52;
+        const BANK_CARD_HORIZONTAL_POSITION: f64 = 300.0;
+        const BANK_CARD_VERTICAL_POSITION: f64 = 100.0;
+
+        image(
+            &all_cards_images[
+                *cards.get(card_index)
+                    .unwrap() as usize % ONE_GAME_CARDS_AMOUNT
+            ],
+            context.transform.trans(
+                BANK_CARD_HORIZONTAL_POSITION + card_index as f64 * CARDS_DISTANCE,
+                BANK_CARD_VERTICAL_POSITION + card_index as f64 * CARDS_DISTANCE,
             ).scale(
                 CARD_DIMENSIONS_SCALE,
                 CARD_DIMENSIONS_SCALE

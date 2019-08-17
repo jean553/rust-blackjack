@@ -30,19 +30,25 @@ use ws::{
 };
 
 use std::io::stdin;
-use std::thread;
 use std::sync::{
     Mutex,
+    MutexGuard,
     Arc,
 };
 use std::sync::mpsc;
+use std::thread;
+use std::time::{
+    Duration,
+    Instant,
+};
 
 use client::Client;
 use event::Event;
 use message_action::MessageAction;
 use socket_message::SocketMessage;
 use display::{
-    display_cards,
+    display_player_cards,
+    display_bank_cards,
     display_remaining_cards_amount,
     display_player_name,
     display_information,
@@ -67,6 +73,7 @@ fn request_card(
     player_points_mutex_arc: &Arc<Mutex<u8>>,
     player_cards: &mut Vec<u16>,
     bank_cards: &mut Vec<u16>,
+    displayed_bank_cards_amount_mutex_arc: &Arc<Mutex<usize>>,
 ) {
     let mut message = SocketMessage {
         action: message_action,
@@ -84,6 +91,10 @@ fn request_card(
     const PLAYER_MAX_HAND_POINTS: u8 = 21;
 
     if *bank_points >= BANK_MAX_HAND_POINTS {
+
+        let mut displayed_bank_cards_amount =
+            displayed_bank_cards_amount_mutex_arc.lock().unwrap();
+        *displayed_bank_cards_amount = 1;
 
         player_cards.clear();
         bank_cards.clear();
@@ -105,6 +116,7 @@ fn main() {
     let player_points_mutex_arc: Arc<Mutex<u8>> = Arc::new(Mutex::new(0));
     let bank_points_mutex_arc: Arc<Mutex<u8>> = Arc::new(Mutex::new(0));
     let remaining_cards_amount_arc: Arc<Mutex<u16>> = Arc::new(Mutex::new(0));
+    let displayed_bank_cards_amount_mutex_arc: Arc<Mutex<usize>> = Arc::new(Mutex::new(1));
 
     println!("Player name: ");
     let mut player_name: String = String::new();
@@ -125,6 +137,7 @@ fn main() {
     let player_points_mutex_arc_clone = player_points_mutex_arc.clone();
     let bank_points_mutex_arc_clone = bank_points_mutex_arc.clone();
     let remaining_cards_amount_arc_clone = remaining_cards_amount_arc.clone();
+    let displayed_bank_cards_amount_mutex_arc_clone = displayed_bank_cards_amount_mutex_arc.clone();
 
     /* the socket handling is performed into a dedicated thread,
      * otherwise the program would just block here waiting for messages */
@@ -138,6 +151,7 @@ fn main() {
                 player_points_mutex_arc: player_points_mutex_arc_clone.clone(),
                 bank_points_mutex_arc: bank_points_mutex_arc_clone.clone(),
                 cards_amount_arc: remaining_cards_amount_arc_clone.clone(),
+                displayed_bank_cards_amount_mutex_arc: displayed_bank_cards_amount_mutex_arc_clone.clone(),
                 socket_sender: sender,
                 channel_sender: channel_sender.clone(),
             }
@@ -189,6 +203,8 @@ fn main() {
         TextureSettings::new()
     ).unwrap();
 
+    let mut displayed_bank_cards_amount_last_update = Instant::now();
+
     while let Some(event) = window.next() {
 
         if Ok(Event::Disconnect) == channel_receiver.try_recv() {
@@ -213,6 +229,7 @@ fn main() {
                 &player_points_mutex_arc,
                 &mut player_cards,
                 &mut bank_cards,
+                &displayed_bank_cards_amount_mutex_arc,
             );
         }
 
@@ -227,6 +244,7 @@ fn main() {
                     &player_points_mutex_arc,
                     &mut player_cards,
                     &mut bank_cards,
+                    &displayed_bank_cards_amount_mutex_arc,
                 );
             }
         }
@@ -253,6 +271,19 @@ fn main() {
                 let message = serde_json::to_string(&stand_message).unwrap();
                 sender.send(message).unwrap();
             }
+        }
+
+        let mut displayed_bank_cards_amount: MutexGuard<usize> =
+            displayed_bank_cards_amount_mutex_arc.lock().unwrap();
+
+        const ANIMATED_DRAWING_INTERVAL: u64 = 5000;
+        if *displayed_bank_cards_amount < bank_cards.len() &&
+            bank_cards.len() != 1 &&
+            displayed_bank_cards_amount_last_update.elapsed() >
+                Duration::from_millis(ANIMATED_DRAWING_INTERVAL)
+        {
+            *displayed_bank_cards_amount += 1;
+            displayed_bank_cards_amount_last_update = Instant::now();
         }
 
         window.draw_2d(
@@ -315,7 +346,7 @@ fn main() {
                 const PLAYER_CARD_HORIZONTAL_POSITION: f64 = 300.0;
                 const PLAYER_CARD_VERTICAL_POSITION: f64 = 400.0;
 
-                display_cards(
+                display_player_cards(
                     &mut window,
                     &context,
                     &cards_images,
@@ -324,16 +355,12 @@ fn main() {
                     PLAYER_CARD_VERTICAL_POSITION,
                 );
 
-                const BANK_CARD_HORIZONTAL_POSITION: f64 = 300.0;
-                const BANK_CARD_VERTICAL_POSITION: f64 = 100.0;
-
-                display_cards(
+                display_bank_cards(
                     &mut window,
                     &context,
                     &cards_images,
                     &bank_cards,
-                    BANK_CARD_HORIZONTAL_POSITION,
-                    BANK_CARD_VERTICAL_POSITION,
+                    *displayed_bank_cards_amount,
                 );
             }
         );
