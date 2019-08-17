@@ -26,6 +26,7 @@ pub struct Client {
     pub player_points_mutex_arc: Arc<Mutex<u8>>,
     pub bank_points_mutex_arc: Arc<Mutex<u8>>,
     pub cards_amount_arc: Arc<Mutex<u16>>,
+    pub displayed_bank_cards_amount_mutex_arc: Arc<Mutex<usize>>,
     pub socket_sender: Sender,
     pub channel_sender: mpsc::Sender<Event>,
 }
@@ -101,6 +102,11 @@ impl Handler for Client {
             let mut bank_points: MutexGuard<u8> =
                 self.bank_points_mutex_arc.lock().unwrap();
             *bank_points = data.player_handpoints;
+
+            let mut displayed_bank_cards_amount: MutexGuard<usize> =
+                self.displayed_bank_cards_amount_mutex_arc.lock().unwrap();
+            const DISPLAYED_BANK_CARDS_AMOUNT_AFTER_DRAWING: usize = 2;
+            *displayed_bank_cards_amount = DISPLAYED_BANK_CARDS_AMOUNT_AFTER_DRAWING;
         }
 
         Ok(())
