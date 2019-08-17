@@ -317,22 +317,25 @@ fn main() {
                 );
 
                 if *displayed_bank_cards_amount == bank_cards.len() {
+
                     display_bank_points(
                         window,
                         &context,
                         &mut glyphs,
                         &bank_points_mutex_arc,
                     );
-
-                    display_information(
-                        window,
-                        &context,
-                        &mut glyphs,
-                        &player_points_mutex_arc,
-                        &bank_points_mutex_arc,
-                        player_cards.len()
-                    );
                 }
+
+                display_information(
+                    window,
+                    &context,
+                    &mut glyphs,
+                    &player_points_mutex_arc,
+                    &bank_points_mutex_arc,
+                    player_cards.len(),
+                    bank_cards.len(),
+                    *displayed_bank_cards_amount,
+                );
 
                 display_player_name(
                     window,

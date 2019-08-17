@@ -181,6 +181,9 @@ pub fn display_player_name(
 /// `glyphs` - the text rendering Piston glyph
 /// `player_points` - the amount of the player hand points
 /// `bank_points` - the amount of the bank hand points
+/// `player_cards_amount` - the amount of cards of the player
+/// `bank_cards_amount` - the amount of cards of the bank
+/// `displayed_bank_cards_amount` - the amount of displayed bank cards
 pub fn display_information(
     window: &mut G2d,
     context: &Context,
@@ -188,6 +191,8 @@ pub fn display_information(
     player_points: &Arc<Mutex<u8>>,
     bank_points: &Arc<Mutex<u8>>,
     player_cards_amount: usize,
+    bank_cards_amount: usize,
+    displayed_bank_cards_amount: usize,
 ) {
     const MIN_BANK_HAND_POINTS: u8 = 17;
     const MAX_VALID_HAND_POINTS: u8 = 21;
@@ -200,11 +205,15 @@ pub fn display_information(
     const PLAYER_WINS_MESSAGE: &str = "Player wins !";
     const PUSH_MESSAGE: &str = "Push";
     const BURST_MESSAGE: &str = "Burst ! Press Enter";
+    const DEALER_PLAYING_MESSAGE: &str = "Waiting for the dealer to play...";
 
     let player_points = player_points.lock().unwrap();
     let bank_points = bank_points.lock().unwrap();
 
-    let displayed_message = if *player_points > MAX_VALID_HAND_POINTS {
+    let displayed_message = if displayed_bank_cards_amount != bank_cards_amount {
+        DEALER_PLAYING_MESSAGE
+    }
+    else if *player_points > MAX_VALID_HAND_POINTS {
         BURST_MESSAGE
     }
     else if *bank_points >= MIN_BANK_HAND_POINTS &&
