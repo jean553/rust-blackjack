@@ -60,7 +60,15 @@ pub fn display_player_cards(
     }
 }
 
-/// TODO
+/// Displays the bank cards according to the current displayed bank cards amount that is incremented to make an animation.
+///
+/// # Args:
+///
+/// `window` - the window where to draw
+/// `context` - the rendering loop context
+/// `all_cards_images` - the array of all the cards images
+/// `cards` - the cards to display
+/// `displayed_bank_cards_amount` - the amount of cards to display to make the animation
 pub fn display_bank_cards(
     window: &mut G2d,
     context: &Context,

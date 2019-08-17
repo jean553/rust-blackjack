@@ -105,7 +105,8 @@ impl Handler for Client {
 
             let mut displayed_bank_cards_amount: MutexGuard<usize> =
                 self.displayed_bank_cards_amount_mutex_arc.lock().unwrap();
-            *displayed_bank_cards_amount = 2;
+            const DISPLAYED_BANK_CARDS_AMOUNT_AFTER_DRAWING: usize = 2;
+            *displayed_bank_cards_amount = DISPLAYED_BANK_CARDS_AMOUNT_AFTER_DRAWING;
         }
 
         Ok(())

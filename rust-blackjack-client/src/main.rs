@@ -94,7 +94,8 @@ fn request_card(
 
         let mut displayed_bank_cards_amount =
             displayed_bank_cards_amount_mutex_arc.lock().unwrap();
-        *displayed_bank_cards_amount = 1;
+        const DEFAULT_DISPLAYED_BANK_CARDS_AMOUNT: usize = 1;
+        *displayed_bank_cards_amount = DEFAULT_DISPLAYED_BANK_CARDS_AMOUNT;
 
         player_cards.clear();
         bank_cards.clear();
