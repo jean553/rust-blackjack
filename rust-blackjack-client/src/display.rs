@@ -299,8 +299,8 @@ pub fn display_basic_strategy_information(
         (INCORRECT_ACTION, RED_COLOR)
     };
 
-    const BASIC_STRATEGY_INFORMATION_HORIZONTAL_POSITION: f64 = 400.0;
-    const BASIC_STRATEGY_INFORMATION_VERTICAL_POSITION: f64 = 100.0;
+    const BASIC_STRATEGY_INFORMATION_HORIZONTAL_POSITION: f64 = 580.0;
+    const BASIC_STRATEGY_INFORMATION_VERTICAL_POSITION: f64 = 500.0;
 
     text::Text::new_color(
         color,
