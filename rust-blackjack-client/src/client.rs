@@ -29,6 +29,92 @@ pub struct Client {
     pub displayed_bank_cards_amount_mutex_arc: Arc<Mutex<usize>>,
     pub socket_sender: Sender,
     pub channel_sender: mpsc::Sender<Event>,
+    pub basic_strategy_action_mutex_arc: Arc<Mutex<MessageAction>>,
+}
+
+/// Returns the a card points amount according to its index.
+fn get_card_points(card_index: u16) -> u8 {
+
+    const ONE_SET_CARDS_AMOUNT: u16 = 52;
+    let card_index = ( card_index % ONE_SET_CARDS_AMOUNT ) as u8;
+
+    const TEN_POINTS_CARDS_START_INDEX: u8 = 32;
+    const ACE_CARDS_START_INDEX: u8 = 48;
+
+    if card_index >= TEN_POINTS_CARDS_START_INDEX &&
+        card_index < ACE_CARDS_START_INDEX {
+
+        const TEN_VALUE_CARDS_POINTS_AMOUNT: u8 = 10;
+        return TEN_VALUE_CARDS_POINTS_AMOUNT;
+    }
+    else if card_index >= ACE_CARDS_START_INDEX {
+
+        const ACE_CARDS_POINTS_AMOUNT: u8 = 11;
+        return ACE_CARDS_POINTS_AMOUNT;
+
+    }
+
+    const CARDS_WITH_SAME_VALUE_BY_COLOR: u8 = 4;
+    const MINIMUM_CARD_VALUE: u8 = 2;
+    return card_index / CARDS_WITH_SAME_VALUE_BY_COLOR
+        + MINIMUM_CARD_VALUE;
+}
+
+/// Indicates the action to follow according to basic strategy rules
+///
+/// # Args:
+///
+/// `player_cards` - the current player cards list
+/// `bank_cards` - the current bank cards list
+fn get_strategic_action(
+    player_cards: &Vec<u16>,
+    bank_cards: &Vec<u16>,
+) -> MessageAction {
+
+    let first_player_card = get_card_points(*player_cards.get(0).unwrap());
+    let second_player_card = get_card_points(*player_cards.get(1).unwrap());
+    let bank_card = get_card_points(*bank_cards.get(0).unwrap());
+
+    /* the player got a pair */
+    if first_player_card == second_player_card {
+
+        if
+            first_player_card == 11 ||
+            first_player_card == 8 ||
+            first_player_card == 9 && (
+                bank_card != 7 ||
+                bank_card != 10 ||
+                bank_card != 11
+            ) ||
+            first_player_card == 7 && bank_card <= 7 ||
+            first_player_card == 6 && bank_card <= 6 && bank_card != 2 ||
+            (
+                first_player_card == 3 ||
+                first_player_card == 2
+            ) && (
+                bank_card <= 7 &&
+                bank_card >= 4
+            )
+        {
+            return MessageAction::Split;
+        }
+
+        if
+            first_player_card == 6 && bank_card == 2 ||
+            first_player_card == 4 && (
+                bank_card == 5 ||
+                bank_card == 6
+            ) ||
+            (
+                first_player_card == 3 ||
+                first_player_card == 2
+            ) && bank_card < 4
+        {
+            return MessageAction::DoubleDown;
+        }
+    }
+
+    return MessageAction::Stand;
 }
 
 impl Handler for Client {
@@ -91,6 +177,16 @@ impl Handler for Client {
             let mut bank_points: MutexGuard<u8> =
                 self.bank_points_mutex_arc.lock().unwrap();
             *bank_points = data.player_handpoints;
+
+            let mut basic_strategy_action: MutexGuard<MessageAction> =
+                self.basic_strategy_action_mutex_arc.lock().unwrap();
+            let player_cards: MutexGuard<Vec<u16>> =
+                self.player_cards_mutex_arc.lock().unwrap();
+
+            *basic_strategy_action = get_strategic_action(
+                &player_cards,
+                &bank_cards,
+            );
         }
 
         if data.action == MessageAction::SendBankCards {

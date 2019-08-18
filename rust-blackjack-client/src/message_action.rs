@@ -1,6 +1,6 @@
 //! Socket message action enumeration.
 
-#[derive(Serialize, Deserialize, PartialEq)]
+#[derive(Serialize, Deserialize, PartialEq, Clone, Copy)]
 pub enum MessageAction {
     SendPlayerCard,
     SendBankCard,
@@ -10,4 +10,6 @@ pub enum MessageAction {
     Continue,
     SendBankCards,
     Restart,
+    Split,
+    NoSplit,
 }
