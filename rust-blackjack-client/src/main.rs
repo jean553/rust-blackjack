@@ -66,6 +66,7 @@ use display::{
 /// `player_points_mutex_arc` - the player points amount
 /// `player_cards` - the current player cards
 /// `bank_cards` - the current bank cards
+/// `displayed_bank_cards_amount` - the current expected amount of bank cards to be displayed
 fn request_card(
     sender: &Sender,
     message_action: MessageAction,
@@ -73,7 +74,7 @@ fn request_card(
     player_points_mutex_arc: &Arc<Mutex<u8>>,
     player_cards: &mut Vec<u16>,
     bank_cards: &mut Vec<u16>,
-    displayed_bank_cards_amount_mutex_arc: &Arc<Mutex<usize>>,
+    displayed_bank_cards_amount: &mut usize,
 ) {
     let mut message = SocketMessage {
         action: message_action,
@@ -92,8 +93,6 @@ fn request_card(
 
     if *bank_points >= BANK_MAX_HAND_POINTS {
 
-        let mut displayed_bank_cards_amount =
-            displayed_bank_cards_amount_mutex_arc.lock().unwrap();
         const DEFAULT_DISPLAYED_BANK_CARDS_AMOUNT: usize = 1;
         *displayed_bank_cards_amount = DEFAULT_DISPLAYED_BANK_CARDS_AMOUNT;
 
@@ -220,6 +219,20 @@ fn main() {
 
         let mut player_cards = player_cards_mutex_arc.lock().unwrap();
         let mut bank_cards = bank_cards_mutex_arc.lock().unwrap();
+        let mut displayed_bank_cards_amount: MutexGuard<usize> =
+            displayed_bank_cards_amount_mutex_arc.lock().unwrap();
+
+        const ANIMATED_DRAWING_INTERVAL: u64 = 2500;
+        const BANK_CARDS_MINIMUM_AMOUNT: usize = 1;
+
+        if *displayed_bank_cards_amount < bank_cards.len() &&
+            bank_cards.len() != BANK_CARDS_MINIMUM_AMOUNT &&
+            displayed_bank_cards_amount_last_update.elapsed() >
+                Duration::from_millis(ANIMATED_DRAWING_INTERVAL)
+        {
+            *displayed_bank_cards_amount += 1;
+            displayed_bank_cards_amount_last_update = Instant::now();
+        }
 
         if let Some(Button::Keyboard(Key::Return)) = pressed_key {
 
@@ -230,13 +243,13 @@ fn main() {
                 &player_points_mutex_arc,
                 &mut player_cards,
                 &mut bank_cards,
-                &displayed_bank_cards_amount_mutex_arc,
+                &mut displayed_bank_cards_amount,
             );
 
             displayed_bank_cards_amount_last_update = Instant::now();
         }
 
-        if let Some(Button::Keyboard(Key::D)) = pressed_key {
+        else if let Some(Button::Keyboard(Key::D)) = pressed_key {
 
             const REQUIRED_CARDS_AMOUNT_FOR_DOUBLE: usize = 2;
             if player_cards.len() == REQUIRED_CARDS_AMOUNT_FOR_DOUBLE {
@@ -247,7 +260,7 @@ fn main() {
                     &player_points_mutex_arc,
                     &mut player_cards,
                     &mut bank_cards,
-                    &displayed_bank_cards_amount_mutex_arc,
+                    &mut displayed_bank_cards_amount,
                 );
 
                 displayed_bank_cards_amount_last_update = Instant::now();
@@ -278,19 +291,6 @@ fn main() {
                 let message = serde_json::to_string(&stand_message).unwrap();
                 sender.send(message).unwrap();
             }
-        }
-
-        let mut displayed_bank_cards_amount: MutexGuard<usize> =
-            displayed_bank_cards_amount_mutex_arc.lock().unwrap();
-
-        const ANIMATED_DRAWING_INTERVAL: u64 = 2500;
-        if *displayed_bank_cards_amount < bank_cards.len() &&
-            bank_cards.len() != 1 &&
-            displayed_bank_cards_amount_last_update.elapsed() >
-                Duration::from_millis(ANIMATED_DRAWING_INTERVAL)
-        {
-            *displayed_bank_cards_amount += 1;
-            displayed_bank_cards_amount_last_update = Instant::now();
         }
 
         window.draw_2d(
