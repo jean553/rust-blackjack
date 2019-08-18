@@ -60,7 +60,12 @@ fn get_card_points(card_index: u16) -> u8 {
         + MINIMUM_CARD_VALUE;
 }
 
-/// TODO
+/// Indicates the action to follow according to basic strategy rules
+///
+/// # Args:
+///
+/// `player_cards` - the current player cards list
+/// `bank_cards` - the current bank cards list
 fn get_strategic_action(
     player_cards: &Vec<u16>,
     bank_cards: &Vec<u16>,

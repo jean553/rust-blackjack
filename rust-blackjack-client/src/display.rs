@@ -271,7 +271,15 @@ pub fn display_information(
     ).unwrap();
 }
 
-/// TODO
+/// Displays information if the basic strategy rules have been followed or not according to the player action.
+///
+/// # Args:
+///
+/// `window` - the window where to draw
+/// `context` - the rendering loop context
+/// `glyphs` - the text rendering Piston glyph
+/// `basic_strategy_action_mutex_arc` - the basic strategy rule to follow
+/// `last_player_action` - the last player action to be compared with the basic strategy rule
 pub fn display_basic_strategy_information(
     window: &mut G2d,
     context: &Context,
