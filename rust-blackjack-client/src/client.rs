@@ -32,7 +32,7 @@ pub struct Client {
     pub basic_strategy_action_mutex_arc: Arc<Mutex<MessageAction>>,
 }
 
-/// TODO
+/// Returns the a card points amount according to its index.
 fn get_card_points(card_index: u16) -> u8 {
 
     const ONE_SET_CARDS_AMOUNT: u16 = 52;
