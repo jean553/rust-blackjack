@@ -52,6 +52,7 @@ use display::{
     display_remaining_cards_amount,
     display_player_name,
     display_information,
+    display_basic_strategy_information,
     display_bank_points,
     display_player_points,
     display_title,
@@ -117,6 +118,7 @@ fn main() {
     let bank_points_mutex_arc: Arc<Mutex<u8>> = Arc::new(Mutex::new(0));
     let remaining_cards_amount_arc: Arc<Mutex<u16>> = Arc::new(Mutex::new(0));
     let displayed_bank_cards_amount_mutex_arc: Arc<Mutex<usize>> = Arc::new(Mutex::new(1));
+    let basic_strategy_action_mutex_arc: Arc<Mutex<MessageAction>> = Arc::new(Mutex::new(MessageAction::Hit));
 
     println!("Player name: ");
     let mut player_name: String = String::new();
@@ -138,6 +140,7 @@ fn main() {
     let bank_points_mutex_arc_clone = bank_points_mutex_arc.clone();
     let remaining_cards_amount_arc_clone = remaining_cards_amount_arc.clone();
     let displayed_bank_cards_amount_mutex_arc_clone = displayed_bank_cards_amount_mutex_arc.clone();
+    let basic_strategy_action_arc_mutex_clone = basic_strategy_action_mutex_arc.clone();
 
     /* the socket handling is performed into a dedicated thread,
      * otherwise the program would just block here waiting for messages */
@@ -152,6 +155,7 @@ fn main() {
                 bank_points_mutex_arc: bank_points_mutex_arc_clone.clone(),
                 cards_amount_arc: remaining_cards_amount_arc_clone.clone(),
                 displayed_bank_cards_amount_mutex_arc: displayed_bank_cards_amount_mutex_arc_clone.clone(),
+                basic_strategy_action_mutex_arc: basic_strategy_action_arc_mutex_clone.clone(),
                 socket_sender: sender,
                 channel_sender: channel_sender.clone(),
             }
@@ -204,6 +208,7 @@ fn main() {
     ).unwrap();
 
     let mut displayed_bank_cards_amount_last_update = Instant::now();
+    let mut last_player_action = MessageAction::Restart;
 
     while let Some(event) = window.next() {
 
@@ -247,6 +252,7 @@ fn main() {
             );
 
             displayed_bank_cards_amount_last_update = Instant::now();
+            last_player_action = MessageAction::Hit;
         }
 
         else if let Some(Button::Keyboard(Key::D)) = pressed_key {
@@ -264,6 +270,7 @@ fn main() {
                 );
 
                 displayed_bank_cards_amount_last_update = Instant::now();
+                last_player_action = MessageAction::DoubleDown;
             }
         }
 
@@ -278,8 +285,6 @@ fn main() {
             if *bank_points < BANK_MAX_HAND_POINTS &&
                 *player_points <= PLAYER_MAX_HAND_POINTS {
 
-                displayed_bank_cards_amount_last_update = Instant::now();
-
                 let stand_message = SocketMessage {
                     action: MessageAction::Stand,
                     card_index: 0,
@@ -290,7 +295,14 @@ fn main() {
                 };
                 let message = serde_json::to_string(&stand_message).unwrap();
                 sender.send(message).unwrap();
+
+                displayed_bank_cards_amount_last_update = Instant::now();
+                last_player_action = MessageAction::Stand;
             }
+        }
+
+        else if let Some(Button::Keyboard(Key::S)) = pressed_key {
+            last_player_action = MessageAction::Split;
         }
 
         window.draw_2d(
@@ -335,6 +347,14 @@ fn main() {
                     player_cards.len(),
                     bank_cards.len(),
                     *displayed_bank_cards_amount,
+                );
+
+                display_basic_strategy_information(
+                    window,
+                    &context,
+                    &mut glyphs,
+                    &basic_strategy_action_mutex_arc,
+                    last_player_action,
                 );
 
                 display_player_name(

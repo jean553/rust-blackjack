@@ -15,8 +15,11 @@ use std::sync::{
     Arc,
 };
 
+use crate::message_action::MessageAction;
+
 const WHITE_COLOR: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 const RED_COLOR: [f32; 4] = [1.0, 0.0, 0.0, 1.0];
+const INFO_FONT_SIZE: u32 = 24;
 
 /// Displays the given cards at the given position.
 ///
@@ -250,7 +253,6 @@ pub fn display_information(
         WHITE_COLOR
     };
 
-    const INFO_FONT_SIZE: u32 = 24;
     const INFO_HORIZONTAL_POSITION: f64 = 10.0;
     const INFO_VERTICAL_POSITION: f64 = 570.0;
 
@@ -264,6 +266,44 @@ pub fn display_information(
         context.transform.trans(
             INFO_HORIZONTAL_POSITION,
             INFO_VERTICAL_POSITION,
+        ),
+        window,
+    ).unwrap();
+}
+
+/// TODO
+pub fn display_basic_strategy_information(
+    window: &mut G2d,
+    context: &Context,
+    glyphs: &mut Glyphs,
+    basic_strategy_action_mutex_arc: &Arc<Mutex<MessageAction>>,
+    last_player_action: MessageAction,
+) {
+
+    const CORRECT_ACTION: &str = "Your action is correct !";
+    const INCORRECT_ACTION: &str = "Incorrect action.";
+
+    let basic_strategy_action = basic_strategy_action_mutex_arc.lock().unwrap();
+
+    let (message, color) = if *basic_strategy_action == last_player_action {
+        (CORRECT_ACTION, WHITE_COLOR)
+    } else {
+        (INCORRECT_ACTION, RED_COLOR)
+    };
+
+    const BASIC_STRATEGY_INFORMATION_HORIZONTAL_POSITION: f64 = 400.0;
+    const BASIC_STRATEGY_INFORMATION_VERTICAL_POSITION: f64 = 100.0;
+
+    text::Text::new_color(
+        color,
+        INFO_FONT_SIZE,
+    ).draw(
+        message,
+        glyphs,
+        &context.draw_state,
+        context.transform.trans(
+            BASIC_STRATEGY_INFORMATION_HORIZONTAL_POSITION,
+            BASIC_STRATEGY_INFORMATION_VERTICAL_POSITION,
         ),
         window,
     ).unwrap();
