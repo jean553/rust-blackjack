@@ -73,6 +73,7 @@ fn get_strategic_action(
 
     let first_player_card = get_card_points(*player_cards.get(0).unwrap());
     let second_player_card = get_card_points(*player_cards.get(1).unwrap());
+    let player_points = first_player_card + second_player_card;
     let bank_card = get_card_points(*bank_cards.get(0).unwrap());
 
     /* the player got a pair */
@@ -112,6 +113,57 @@ fn get_strategic_action(
         {
             return MessageAction::DoubleDown;
         }
+    }
+
+    /* the player does not have a pair */
+    if
+        player_points >= 17 ||
+        (
+            player_points <= 16 &&
+            player_points >= 13 &&
+            bank_card <= 6
+        ) ||
+        (
+            player_points == 12 &&
+            bank_card >= 4 &&
+            bank_card <= 6
+        )
+    {
+        return MessageAction::Stand;
+    }
+    else if
+        (
+            player_points <= 16 &&
+            player_points >= 13 &&
+            bank_card >= 7
+        ) || (
+            player_points == 12 &&
+            (
+                bank_card <= 3 ||
+                bank_card >= 7
+            )
+        ) || (
+            player_points == 10 &&
+            bank_card >= 10
+        ) || (
+            player_points == 9 && (
+                bank_card == 2 ||
+                bank_card >= 7
+            )
+        )
+    {
+        return MessageAction::Hit;
+    }
+    else if
+        player_points == 11 ||
+        player_points == 10 &&
+        bank_card <= 9 ||
+        player_points == 9 && (
+            bank_card >= 3 ||
+            bank_card <= 6
+        )
+    {
+        return MessageAction::DoubleDown;
     }
 
     return MessageAction::Stand;

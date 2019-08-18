@@ -278,22 +278,20 @@ pub fn display_information(
 /// `window` - the window where to draw
 /// `context` - the rendering loop context
 /// `glyphs` - the text rendering Piston glyph
-/// `basic_strategy_action_mutex_arc` - the basic strategy rule to follow
+/// `basic_strategy_action` - the basic strategy rule to follow
 /// `last_player_action` - the last player action to be compared with the basic strategy rule
 pub fn display_basic_strategy_information(
     window: &mut G2d,
     context: &Context,
     glyphs: &mut Glyphs,
-    basic_strategy_action_mutex_arc: &Arc<Mutex<MessageAction>>,
+    basic_strategy_action: MessageAction,
     last_player_action: MessageAction,
 ) {
 
     const CORRECT_ACTION: &str = "Your action is correct !";
     const INCORRECT_ACTION: &str = "Incorrect action.";
 
-    let basic_strategy_action = basic_strategy_action_mutex_arc.lock().unwrap();
-
-    let (message, color) = if *basic_strategy_action == last_player_action {
+    let (message, color) = if basic_strategy_action == last_player_action {
         (CORRECT_ACTION, WHITE_COLOR)
     } else {
         (INCORRECT_ACTION, RED_COLOR)

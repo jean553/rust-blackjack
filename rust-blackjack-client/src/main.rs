@@ -226,6 +226,8 @@ fn main() {
         let mut bank_cards = bank_cards_mutex_arc.lock().unwrap();
         let mut displayed_bank_cards_amount: MutexGuard<usize> =
             displayed_bank_cards_amount_mutex_arc.lock().unwrap();
+        let basic_strategy_action: MutexGuard<MessageAction> =
+            basic_strategy_action_mutex_arc.lock().unwrap();
 
         const ANIMATED_DRAWING_INTERVAL: u64 = 2500;
         const BANK_CARDS_MINIMUM_AMOUNT: usize = 1;
@@ -353,7 +355,7 @@ fn main() {
                     window,
                     &context,
                     &mut glyphs,
-                    &basic_strategy_action_mutex_arc,
+                    *basic_strategy_action,
                     last_player_action,
                 );
 
