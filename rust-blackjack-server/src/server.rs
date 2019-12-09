@@ -9,7 +9,8 @@ use ws::{
     Message,
 };
 
-use rand::{thread_rng, Rng};
+use rand::thread_rng;
+use rand::seq::SliceRandom;
 
 use crate::socket_message::SocketMessage;
 use crate::message_action::MessageAction;
@@ -84,7 +85,9 @@ impl Server {
 
         let mut all_cards: Vec<u16> = (MIN_CARD_ID..MAX_CARD_ID).collect();
         let cards: &mut [u16] = &mut all_cards;
-        thread_rng().shuffle(cards);
+
+        let mut rng = thread_rng();
+        cards.shuffle(&mut rng);
 
         Server {
             output: output,

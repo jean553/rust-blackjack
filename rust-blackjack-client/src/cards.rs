@@ -24,7 +24,7 @@ fn load_one_card_texture(
     file_path.push_str(".png");
 
     Texture::from_path(
-        &mut window.factory,
+        &mut window.create_texture_context(),
         &file_path,
         Flip::None,
         &TextureSettings::new(),
