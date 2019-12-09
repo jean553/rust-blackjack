@@ -203,7 +203,7 @@ fn main() {
     const TITLE_FONT_PATH: &str = "res/title_font.ttf";
     let mut glyphs = Glyphs::new(
         TITLE_FONT_PATH,
-        window.factory.clone(),
+        window.create_texture_context(),
         TextureSettings::new()
     ).unwrap();
 
@@ -309,7 +309,7 @@ fn main() {
 
         window.draw_2d(
             &event,
-            |context, mut window| {
+            |context, mut window, device| {
 
                 const GREEN_COLOR: [f32; 4] = [0.2, 0.5, 0.3, 1.0];
                 clear(
@@ -396,6 +396,10 @@ fn main() {
                     &bank_cards,
                     *displayed_bank_cards_amount,
                 );
+
+                glyphs.factory
+                    .encoder
+                    .flush(device);                
             }
         );
     }

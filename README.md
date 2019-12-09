@@ -3,7 +3,7 @@
 Very simple blackjack game with server and client programs,
 for WebSocket/multi-threading self-learning purposes.
 
-**NOTE: This is a work in progress...**
+![Screenshot](screenshot.png)
 
 ## Develop and build
 
